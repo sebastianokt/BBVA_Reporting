@@ -75,7 +75,7 @@ const applyStoredStatus = (processes) => {
 
 const updateResponsableOptions = (processes) => {
   if (!responsableFilter) return;
-  const preferredOrder = ["Jorge", "Sebastian", "Fredy"];
+  const preferredOrder = ["Jorge", "Johan", "Fredy"];
   const responsibles = Array.from(
     new Set(processes.map((process) => process.assignedTo).filter(Boolean))
   ).sort((a, b) => {

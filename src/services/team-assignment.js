@@ -4,7 +4,7 @@ import { inferResponsible, normalizeKey } from "../data/migration-rules.js";
 export const assignByHours = (processes) => {
   const totals = {
     Jorge: 0,
-    Sebastian: 0,
+    Johan: 0,
   };
 
   const fixed = [];

@@ -127,7 +127,7 @@ export const renderWeeklyComparisonChart = (containerId, comparison) => {
       toolbar: { show: false },
     },
     series: comparison.series,
-    colors: ["#004481", "#00a878"],
+    colors: ["#004481", "#f59e0b", "#00a878"],
     stroke: { curve: "smooth", width: 3 },
     markers: { size: 4 },
     xaxis: {

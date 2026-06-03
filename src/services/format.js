@@ -1,5 +1,5 @@
 export const displayResponsible = (name) =>
-  name === "Johan" ? "Sebastián" : name;
+  name === "Johan" ? "Johan" : name;
 
 export const displayStatus = (status) =>
   status === "Ya se migro" ? "Ya se migró" : status;

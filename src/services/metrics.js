@@ -83,9 +83,15 @@ export const computeMetrics = (processes) => {
 const normalizePerson = (value) => String(value || "").trim().toLowerCase();
 
 export const buildWeeklyComparison = (scheduleEntries = [], processes = [], people = []) => {
-  const completedIds = new Set(
+  const doneIds = new Set(
     processes
       .filter((process) => (process.migrationStatus || MIGRATION_STATUS.pending) === MIGRATION_STATUS.done)
+      .map((process) => String(process.processId || "").trim())
+      .filter(Boolean)
+  );
+  const validatingIds = new Set(
+    processes
+      .filter((process) => (process.migrationStatus || MIGRATION_STATUS.pending) === MIGRATION_STATUS.validating)
       .map((process) => String(process.processId || "").trim())
       .filter(Boolean)
   );
@@ -107,7 +113,13 @@ export const buildWeeklyComparison = (scheduleEntries = [], processes = [], peop
     const done = weeks.map((week) =>
       scheduleEntries.filter((entry) => {
         if (entry.week !== week || normalizePerson(entry.person) !== personKey) return false;
-        return completedIds.has(String(entry.processId || "").trim());
+        return doneIds.has(String(entry.processId || "").trim());
+      }).length
+    );
+    const validating = weeks.map((week) =>
+      scheduleEntries.filter((entry) => {
+        if (entry.week !== week || normalizePerson(entry.person) !== personKey) return false;
+        return validatingIds.has(String(entry.processId || "").trim());
       }).length
     );
 
@@ -115,8 +127,9 @@ export const buildWeeklyComparison = (scheduleEntries = [], processes = [], peop
       person,
       weeks,
       series: [
-        { name: "Debio hacer", data: planned },
-        { name: "Realmente hizo", data: done },
+        { name: "Proyección", data: planned },
+        { name: "Validación", data: validating },
+        { name: "Ejecución", data: done },
       ],
     };
   });
