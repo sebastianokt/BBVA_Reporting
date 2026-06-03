@@ -1,0 +1,61 @@
+.sidebar {
+  background: linear-gradient(180deg, var(--bbva-navy), #061b3a 100%);
+  min-height: 100vh;
+  color: #fff;
+}
+
+.brand {
+  font-family: "Playfair Display", serif;
+  font-size: 1.75rem;
+  color: var(--bbva-sky);
+}
+
+.brand-sub {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.side-link {
+  color: rgba(255, 255, 255, 0.7);
+  border-left: 3px solid transparent;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.side-link:hover,
+.side-link.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-left-color: var(--bbva-sky);
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--bbva-navy), var(--bbva-blue));
+  border-radius: 1.25rem;
+  color: #fff;
+}
+
+.hero h1 {
+  font-family: "Playfair Display", serif;
+}
+
+.module {
+  display: none;
+}
+
+.module.active {
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    position: static;
+    min-height: auto;
+  }
+}

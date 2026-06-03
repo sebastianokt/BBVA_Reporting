@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BBVA · Validador motor</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/base.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/validator.css" />
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <aside class="col-lg-2 p-0 sidebar">
+          <div class="p-4 border-bottom border-light border-opacity-10">
+            <div class="brand">BBVA</div>
+            <div class="brand-sub">Migracion de procesos</div>
+          </div>
+          <nav class="px-3 py-3">
+            <div class="text-uppercase small text-white-50 mb-2">Panel</div>
+            <a class="side-link" href="./index.html">🌎 General</a>
+            <div class="text-uppercase small text-white-50 mt-3 mb-2">Migraciones</div>
+            <a class="side-link" href="./index.html">🏢 Migracion Recoveries</a>
+            <a class="side-link" href="./index.html">🏢 Migracion Fredy</a>
+            <div class="text-uppercase small text-white-50 mt-3 mb-2">Validador</div>
+            <a class="side-link active" href="./validator.html">✅ Validador motor</a>
+          </nav>
+          <div class="p-3 text-white-50 small border-top border-light border-opacity-10">
+            Recoveries · 2026
+          </div>
+        </aside>
+
+        <main class="col-lg-10 p-4">
+          <section class="hero p-4 p-lg-5 mb-4">
+            <div class="row g-4 align-items-center">
+              <div class="col-lg-8">
+                <div class="text-uppercase small text-white-50 mb-2">Validador motor</div>
+                <h1 class="display-6 mb-2">Bitacora y avance operativo</h1>
+                <p class="text-white-50 mb-0">
+                  Resumen basico de validaciones, hallazgos y estado general del motor.
+                </p>
+              </div>
+              <div class="col-lg-4">
+                <div class="card panel-card bg-white">
+                  <div class="card-body">
+                    <div class="text-uppercase small text-muted">Estado general</div>
+                    <div id="validator-current-status" class="fw-semibold my-2">Completado</div>
+                    <div class="d-flex flex-wrap gap-2">
+                      <span class="tag-pill tag-pending">Entradas</span>
+                      <span class="tag-pill tag-pending">Salidas</span>
+                      <span class="tag-pill tag-done">Hallazgos</span>
+                    </div>
+                    <button id="record-validation-button" class="btn btn-primary btn-sm mt-3" type="button">
+                      Registrar validacion
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="row g-3">
+            <div class="col-lg-8">
+              <div class="card panel-card">
+                <div class="card-body">
+                  <div class="text-uppercase small text-muted">Bitacora · Validador motor</div>
+                  <div class="table-responsive mt-3">
+                    <table class="table align-middle">
+                      <thead>
+                        <tr>
+                          <th>Fecha</th>
+                          <th>Actividad</th>
+                          <th>Estado</th>
+                          <th>Resultado</th>
+                        </tr>
+                      </thead>
+                      <tbody id="validator-log-body">
+                        <tr>
+                          <td>01/06/2026</td>
+                          <td>Identificacion de campos de entrada</td>
+                          <td>142 campos identificados</td>
+                        </tr>
+                        <tr>
+                          <td>01/06/2026</td>
+                          <td>Validacion de campos nulos de entrada</td>
+                          <td>57 campos con valores nulos</td>
+                        </tr>
+                        <tr>
+                          <td>01/06/2026</td>
+                          <td>Identificacion de campos de salida</td>
+                          <td>33 de 66 campos revisados</td>
+                        </tr>
+                        <tr>
+                          <td>01/06/2026</td>
+                          <td>Validacion de reglas de salida</td>
+                          <td>14 de 14 reglas verificadas</td>
+                        </tr>
+                        <tr>
+                          <td>01/06/2026</td>
+                          <td>Revision de documentacion funcional</td>
+                          <td>Completada</td>
+                        </tr>
+                        <tr>
+                          <td>01/06/2026</td>
+                          <td>Registro de hallazgos</td>
+                          <td>Pendientes de correccion identificados</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card panel-card h-100 validator-summary">
+                <div class="card-body">
+                  <div class="text-uppercase small text-muted">Resumen rapido</div>
+                  <div class="fw-semibold mt-3">Entradas</div>
+                  <ul class="mb-3">
+                    <li>Campos identificados: 142</li>
+                    <li>Campos nulos detectados: 57</li>
+                  </ul>
+                  <div class="fw-semibold">Salidas</div>
+                  <ul class="mb-3">
+                    <li>Campos identificados: 33/66</li>
+                    <li>Reglas validadas: 14/14</li>
+                  </ul>
+                  <div class="fw-semibold">Estado general</div>
+                  <ul class="mb-0">
+                    <li>Validacion de entradas: Completado</li>
+                    <li>Validacion de salidas: Completado</li>
+                    <li>Hallazgos documentados: Si</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="row g-3 mt-1">
+            <div class="col-lg-4">
+              <div class="card panel-card h-100">
+                <div class="card-body">
+                  <div class="text-uppercase small text-muted">Avance de entradas</div>
+                  <div id="motor-chart-inputs" class="chart-box"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card panel-card h-100">
+                <div class="card-body">
+                  <div class="text-uppercase small text-muted">Avance de salidas</div>
+                  <div id="motor-chart-outputs" class="chart-box"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card panel-card h-100">
+                <div class="card-body">
+                  <div class="text-uppercase small text-muted">Estado general</div>
+                  <div id="motor-chart-status" class="chart-box"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="row g-3 mt-1">
+            <div class="col-12">
+              <div class="card panel-card">
+                <div class="card-body">
+                  <div class="text-uppercase small text-muted">Historial de validaciones</div>
+                  <div class="table-responsive mt-3">
+                    <table class="table align-middle">
+                      <thead>
+                        <tr>
+                          <th>Fecha</th>
+                          <th>Validacion</th>
+                          <th>Estado</th>
+                          <th>Resumen</th>
+                          <th>Ejecutado por</th>
+                        </tr>
+                      </thead>
+                      <tbody id="validation-history-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script type="module" src="./src/app/validator.js"></script>
+  </body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de Modernización · BBVA Recoveries</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #072146;
+  --blue: #004481;
+  --mid: #1973B8;
+  --sky: #49A5E6;
+  --white: #ffffff;
+  --offwhite: #F5F7FA;
+  --gray: #E4E9F0;
+  --text: #1A2942;
+  --muted: #6B7A99;
+  --green: #00A878;
+  --amber: #F59E0B;
+  --red: #E63946;
+  --sidebar: 250px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--offwhite);color:var(--text);display:flex;min-height:100vh;font-size:15px}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar);background:var(--navy);position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:200;overflow-y:auto}
+.sb-logo{padding:30px 22px 22px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-brand{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--sky);letter-spacing:-.5px}
+.sb-tagline{font-size:.68rem;color:rgba(255,255,255,.38);letter-spacing:2px;text-transform:uppercase;margin-top:3px}
+.sb-nav{padding:14px 0;flex:1}
+.sb-group{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.28);padding:14px 22px 6px}
+.sb-link{display:flex;align-items:center;gap:10px;padding:10px 22px;color:rgba(255,255,255,.6);text-decoration:none;font-size:.8rem;font-weight:500;border-left:3px solid transparent;transition:all .18s}
+.sb-link:hover,.sb-link.on{color:#fff;background:rgba(255,255,255,.06);border-left-color:var(--sky)}
+.sb-link .ic{width:18px;text-align:center;font-size:.95rem}
+.sb-foot{padding:16px 22px;border-top:1px solid rgba(255,255,255,.08);font-size:.68rem;color:rgba(255,255,255,.25)}
+
+/* MAIN */
+#main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column}
+
+/* HERO */
+.hero{background:linear-gradient(140deg,#072146 0%,#004481 55%,#1973B8 100%);color:#fff;padding:56px 52px 44px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:rgba(73,165,230,.07);top:-150px;right:-120px}
+.hero::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-100px;right:280px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(73,165,230,.18);border:1px solid rgba(73,165,230,.35);border-radius:100px;padding:5px 14px;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--sky);margin-bottom:18px}
+.hero h1{font-family:'Playfair Display',serif;font-size:2.4rem;line-height:1.18;max-width:640px;font-weight:700;margin-bottom:10px}
+.hero-sub{color:rgba(255,255,255,.58);font-size:.9rem;max-width:560px;line-height:1.6;margin-bottom:32px}
+.hero-chips{display:flex;gap:12px;flex-wrap:wrap}
+.hero-chip{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 18px;text-align:center}
+.hero-chip-val{font-size:1.5rem;font-weight:800;color:#fff;display:block;line-height:1}
+.hero-chip-lbl{font-size:.67rem;color:rgba(255,255,255,.5);margin-top:3px;display:block}
+
+/* KPI BAR */
+.kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);background:var(--blue)}
+.kpi-item{padding:18px 22px;border-right:1px solid rgba(255,255,255,.1);text-align:center;color:#fff}
+.kpi-item:last-child{border-right:none}
+.kpi-n{font-family:'Playfair Display',serif;font-size:2rem;color:var(--sky);line-height:1}
+.kpi-l{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:3px}
+
+/* CONTENT */
+.wrap{padding:40px 52px 64px}
+.sec{margin-bottom:52px}
+.sec-hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.sec-num{width:32px;height:32px;border-radius:8px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0}
+.sec-title{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--navy)}
+.sec-line{height:2px;background:linear-gradient(90deg,var(--blue),transparent);margin-bottom:26px}
+
+/* CARDS */
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(7,33,70,.06);padding:26px}
+.card-sm-title{font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+
+/* GRID HELPERS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.gfull{grid-column:1/-1}
+
+/* INFO CARDS */
+.info-card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 12px rgba(7,33,70,.06);border-left:4px solid var(--sky)}
+.info-card h4{font-size:.73rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:9px}
+.info-card p,.info-card ul{font-size:.85rem;color:var(--muted);line-height:1.75}
+.info-card ul{padding-left:16px}
+.info-card.gfull{grid-column:1/-1}
+
+/* TAGS / BADGES */
+.tag{display:inline-block;padding:3px 10px;border-radius:100px;font-size:.68rem;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.tag-baja{background:#D1FAE5;color:#065F46}
+.tag-media{background:#FEF3C7;color:#92400E}
+.tag-alta{background:#FEE2E2;color:#991B1B}
+.tag-xl{background:#EDE9FE;color:#5B21B6}
+.tag-1{background:#D1FAE5;color:#065F46}
+.tag-2{background:#DBEAFE;color:#1E40AF}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:14px;box-shadow:0 2px 12px rgba(7,33,70,.07)}
+table{width:100%;border-collapse:collapse;background:#fff;font-size:.8rem}
+thead{background:var(--navy);color:#fff}
+thead th{padding:12px 14px;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap}
+tbody tr:nth-child(even){background:#F8FAFD}
+tbody tr:hover{background:#EEF5FF}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--gray);vertical-align:middle;line-height:1.4}
+
+/* PHASE CARDS */
+.phase-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.phase-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(7,33,70,.06);border-top:4px solid}
+.phase-card:nth-child(1){border-color:var(--blue)}
+.phase-card:nth-child(2){border-color:var(--mid)}
+.phase-card:nth-child(3){border-color:var(--sky)}
+.phase-card:nth-child(4){border-color:var(--green)}
+.phase-card:nth-child(5){border-color:var(--amber)}
+.phase-icon{font-size:1.5rem;margin-bottom:8px}
+.phase-name{font-weight:700;font-size:.82rem;color:var(--navy);margin-bottom:8px}
+.phase-weeks{font-size:.7rem;color:var(--sky);font-weight:600;margin-bottom:10px}
+.phase-list{list-style:none}
+.phase-list li{font-size:.76rem;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--gray);display:flex;gap:6px}
+.phase-list li::before{content:'›';color:var(--sky);flex-shrink:0}
+
+/* DEV CARDS */
+.dev-card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(7,33,70,.06)}
+.dev-card.d1{border-top:4px solid var(--blue)}
+.dev-card.d2{border-top:4px solid var(--sky)}
+.dev-name{font-weight:800;font-size:.95rem;color:var(--navy);margin-bottom:3px}
+.dev-role{font-size:.73rem;color:var(--muted);margin-bottom:14px}
+.dev-stats{display:flex;gap:18px;margin-bottom:14px}
+.ds-val{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--blue);line-height:1}
+.ds-lbl{font-size:.65rem;color:var(--muted)}
+.bar-wrap{background:var(--gray);border-radius:100px;height:7px;overflow:hidden}
+.bar-fill{height:100%;border-radius:100px}
+.d1 .bar-fill{background:var(--blue)}
+.d2 .bar-fill{background:var(--sky)}
+
+/* GANTT */
+.gantt-box{background:#fff;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(7,33,70,.06);overflow-x:auto}
+.gantt-hdr{font-weight:700;font-size:.83rem;color:var(--navy);margin-bottom:18px}
+.gweeks{display:flex;margin-left:190px;min-width:480px;margin-bottom:5px}
+.gweek{flex:1;text-align:center;font-size:.62rem;color:var(--muted);font-weight:600}
+.grow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.glabel{font-size:.74rem;color:var(--navy);font-weight:500;width:180px;flex-shrink:0;text-align:right;line-height:1.3}
+.gtrack{flex:1;background:var(--gray);border-radius:4px;height:26px;position:relative;min-width:480px}
+.gbar{position:absolute;top:3px;bottom:3px;border-radius:3px;display:flex;align-items:center;padding:0 7px;font-size:.65rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
+.milestones{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.milestone{display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;border-radius:6px;padding:5px 11px;font-size:.72rem;font-weight:600}
+.milestone span{color:var(--sky)}
+
+/* RISK CARDS */
+.risk-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(7,33,70,.06);border-left:4px solid}
+.risk-card.r-alto{border-color:var(--red)}
+.risk-card.r-medio{border-color:var(--amber)}
+.risk-card.r-bajo{border-color:var(--green)}
+.risk-title{font-weight:700;font-size:.84rem;color:var(--navy);margin-bottom:7px}
+.risk-tags{display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap}
+.rtag{font-size:.66rem;font-weight:700;padding:2px 9px;border-radius:100px;letter-spacing:.4px}
+.rtag.ia{background:#FEE2E2;color:#991B1B}
+.rtag.im{background:#FEF3C7;color:#92400E}
+.rtag.pa{background:#EDE9FE;color:#5B21B6}
+.rtag.pm{background:#E0F2FE;color:#075985}
+.rtag.pb{background:#F1F5F9;color:#475569}
+.risk-body{font-size:.78rem;color:var(--muted);line-height:1.65}
+.risk-body strong{color:var(--text)}
+
+/* METRIC CARDS */
+.metric-card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(7,33,70,.06);text-align:center;border-bottom:3px solid var(--sky)}
+.metric-val{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--blue);line-height:1;margin-bottom:6px}
+.metric-name{font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:4px}
+.metric-desc{font-size:.71rem;color:var(--muted);line-height:1.55}
+
+/* REC CARDS */
+.rec-card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(7,33,70,.06)}
+.rec-icon{font-size:1.5rem;margin-bottom:10px}
+.rec-title{font-weight:700;font-size:.84rem;color:var(--navy);margin-bottom:8px}
+.rec-body{font-size:.79rem;color:var(--muted);line-height:1.65}
+
+/* CHART CARD */
+.chart-card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(7,33,70,.06)}
+.chart-card canvas{max-height:240px}
+
+/* FOOTER */
+footer{background:var(--navy);color:rgba(255,255,255,.35);padding:18px 52px;font-size:.72rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+footer strong{color:rgba(255,255,255,.7)}
+
+@media(max-width:1100px){
+  #sidebar{display:none}
+  #main{margin-left:0}
+  .kpi-bar,.g2,.g3,.g4,.phase-grid{grid-template-columns:1fr}
+  .gfull,.info-card.gfull{grid-column:1}
+  .hero{padding:36px 22px 28px}
+  .wrap{padding:22px}
+  footer{padding:14px 22px}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">BBVA</div>
+    <div class="sb-tagline">Plan de Modernización</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group">Inicio</div>
+    <a href="#inicio" class="sb-link on"><span class="ic">🏠</span> Presentación</a>
+    <a href="#que-es" class="sb-link"><span class="ic">💡</span> ¿Qué estamos haciendo?</a>
+    <div class="sb-group">El Proyecto</div>
+    <a href="#procesos" class="sb-link"><span class="ic">📋</span> Lista de Procesos</a>
+    <a href="#esfuerzo" class="sb-link"><span class="ic">⏱️</span> Nivel de Esfuerzo</a>
+    <a href="#fases" class="sb-link"><span class="ic">🗺️</span> Cómo lo haremos</a>
+    <a href="#equipo" class="sb-link"><span class="ic">👥</span> El Equipo</a>
+    <a href="#cronograma" class="sb-link"><span class="ic">📅</span> Cronograma</a>
+    <div class="sb-group">Gestión</div>
+    <a href="#riesgos" class="sb-link"><span class="ic">⚠️</span> Posibles Riesgos</a>
+    <a href="#exito" class="sb-link"><span class="ic">🎯</span> ¿Cómo medimos el éxito?</a>
+    <a href="#conclusiones" class="sb-link"><span class="ic">✅</span> Conclusiones</a>
+  </div>
+  <div class="sb-foot">BBVA Colombia · Recoveries · 2026</div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- HERO -->
+<div class="hero" id="inicio">
+  <div class="hero-eyebrow">📘 Plan Ejecutivo · Área de Recuperaciones</div>
+  <h1>Modernización de Herramientas Analíticas</h1>
+  <div class="hero-sub">Estamos actualizando las herramientas con las que el área de Recoveries genera sus reportes e informes, pasando de una tecnología antigua a una plataforma moderna, más rápida y eficiente.</div>
+  <div class="hero-chips">
+    <div class="hero-chip"><span class="hero-chip-val">38</span><span class="hero-chip-lbl">Reportes a modernizar</span></div>
+    <div class="hero-chip"><span class="hero-chip-val">236 h</span><span class="hero-chip-lbl">Trabajo estimado</span></div>
+    <div class="hero-chip"><span class="hero-chip-val">6 sem</span><span class="hero-chip-lbl">Duración estimada</span></div>
+    <div class="hero-chip"><span class="hero-chip-val">2</span><span class="hero-chip-lbl">Personas en el equipo</span></div>
+  </div>
+</div>
+
+<!-- KPI BAR -->
+<div class="kpi-bar">
+  <div class="kpi-item"><div class="kpi-n">15</div><div class="kpi-l">Reportes sencillos</div></div>
+  <div class="kpi-item"><div class="kpi-n">15</div><div class="kpi-l">Reportes de dificultad media</div></div>
+  <div class="kpi-item"><div class="kpi-n">7</div><div class="kpi-l">Reportes complejos</div></div>
+  <div class="kpi-item"><div class="kpi-n">1</div><div class="kpi-l">Reporte muy complejo</div></div>
+</div>
+
+<!-- CONTENT -->
+<div class="wrap">
+
+<!-- ─── ¿QUÉ ESTAMOS HACIENDO? ─── -->
+<div class="sec" id="que-es">
+  <div class="sec-hd"><div class="sec-num">01</div><div class="sec-title">¿Qué estamos haciendo y por qué?</div></div>
+  <div class="sec-line"></div>
+  <div class="g2">
+    <div class="info-card">
+      <h4>🔧 El Problema Actual</h4>
+      <p>El área de Recoveries tiene 38 reportes e informes que se generan usando una herramienta llamada SAS. Esta herramienta es antigua, costosa y difícil de mantener. Cada vez que algo falla o hay que hacer un cambio, el proceso es lento y requiere licencias especiales que tienen un alto costo para el banco.</p>
+    </div>
+    <div class="info-card">
+      <h4>🚀 La Solución</h4>
+      <p>Vamos a trasladar todos esos reportes a PySpark, una plataforma moderna usada por los bancos y empresas tecnológicas más grandes del mundo. Es como cambiar una máquina de escribir por una computadora: el resultado es el mismo, pero más rápido, más barato y mucho más fácil de actualizar.</p>
+    </div>
+    <div class="info-card">
+      <h4>✅ Beneficios para el Área</h4>
+      <ul>
+        <li>Los reportes se generarán más rápido</li>
+        <li>Se reducen costos de licencias de software</li>
+        <li>El equipo podrá hacer cambios con más facilidad</li>
+        <li>Mayor confiabilidad en los resultados</li>
+        <li>Alineación con la tecnología del resto del banco</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>📌 Lo que asumimos</h4>
+      <ul>
+        <li>2 personas dedicadas al proyecto</li>
+        <li>Ambas herramientas (vieja y nueva) disponibles al mismo tiempo para comparar resultados</li>
+        <li>Los usuarios del área apoyarán la validación de los reportes</li>
+        <li>Jornada normal de trabajo (8 horas diarias, lunes a viernes)</li>
+      </ul>
+    </div>
+    <div class="info-card gfull">
+      <h4>⚠️ Limitaciones del proyecto</h4>
+      <p>El equipo es de solo 2 personas, lo que exige una planificación muy cuidadosa para no sobrecargar a ninguno. El reporte de <strong>Cosechas de cartera R</strong> es el más grande y complejo (el único catalogado como "muy complejo"), y concentra una parte importante del esfuerzo total. Se iniciará desde el primer día para evitar retrasos. No se incluyen en este plan los reportes que ya fueron descartados o que están a cargo de otros equipos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LISTA DE PROCESOS ─── -->
+<div class="sec" id="procesos">
+  <div class="sec-hd"><div class="sec-num">02</div><div class="sec-title">Lista Completa de Reportes a Modernizar</div></div>
+  <div class="sec-line"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre del Reporte</th>
+          <th>Dificultad</th>
+          <th>Tiempo estimado</th>
+          <th>Responsable</th>
+          <th>Prioridad</th>
+        </tr>
+      </thead>
+      <tbody id="proc-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ─── ESFUERZO ─── -->
+<div class="sec" id="esfuerzo">
+  <div class="sec-hd"><div class="sec-num">03</div><div class="sec-title">¿Cuánto esfuerzo requiere cada tipo?</div></div>
+  <div class="sec-line"></div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="card-sm-title">Reportes por Nivel de Dificultad</div>
+      <canvas id="chartDif"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="card-sm-title">Horas Totales por Nivel de Dificultad</div>
+      <canvas id="chartH"></canvas>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="card" style="border-left:4px solid var(--green)">
+      <div class="card-sm-title">🟢 Dificultad Baja — 15 reportes</div>
+      <p style="font-size:.82rem;color:var(--muted);line-height:1.7">Son reportes cortos y directos. Generan una salida puntual con una lógica simple. Cada uno tarda entre 1 y 4 horas. Se pueden hacer varios en una semana. Ejemplos: AL DIA, Cancelados, Informe Asobancaria.</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--amber)">
+      <div class="card-sm-title">🟡 Dificultad Media — 15 reportes</div>
+      <p style="font-size:.82rem;color:var(--muted);line-height:1.7">Tienen mayor volumen de información y lógica de negocio más elaborada. Cada uno tarda entre 4 y 9 horas. Requieren revisión funcional con el usuario. Ejemplos: Retarget, Base Insolvencia, DIY.</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--red)">
+      <div class="card-sm-title">🔴 Dificultad Alta / Muy Alta — 8 reportes</div>
+      <p style="font-size:.82rem;color:var(--muted);line-height:1.7">Son los más grandes y con mayor impacto de negocio. Involucran múltiples fuentes de datos, cálculos complejos y varias etapas. Pueden tomar entre 10 y 27 horas cada uno. Requieren acompañamiento cercano del área.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FASES ─── -->
+<div class="sec" id="fases">
+  <div class="sec-hd"><div class="sec-num">04</div><div class="sec-title">¿Cómo lo haremos? Las 5 Etapas</div></div>
+  <div class="sec-line"></div>
+  <div class="phase-grid">
+    <div class="phase-card">
+      <div class="phase-icon">🔍</div>
+      <div class="phase-name">Etapa 1: Entender</div>
+      <div class="phase-weeks">Semanas 1–2</div>
+      <ul class="phase-list">
+        <li>Revisar cómo funciona cada reporte hoy</li>
+        <li>Hablar con los usuarios del área</li>
+        <li>Identificar qué datos usa y qué produce</li>
+        <li>Detectar dependencias entre reportes</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-icon">🛠️</div>
+      <div class="phase-name">Etapa 2: Construir</div>
+      <div class="phase-weeks">Semanas 3–14</div>
+      <ul class="phase-list">
+        <li>Reescribir cada reporte en la nueva tecnología</li>
+        <li>Mantener exactamente el mismo resultado</li>
+        <li>Documentar cada proceso</li>
+        <li>Revisión cruzada entre los dos desarrolladores</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-icon">🔬</div>
+      <div class="phase-name">Etapa 3: Comparar</div>
+      <div class="phase-weeks">Semanas 5–16</div>
+      <ul class="phase-list">
+        <li>Ejecutar el reporte viejo y el nuevo al mismo tiempo</li>
+        <li>Comparar que los números sean iguales</li>
+        <li>Validar con el usuario de negocio</li>
+        <li>Corregir diferencias encontradas</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-icon">✅</div>
+      <div class="phase-name">Etapa 4: Aprobar</div>
+      <div class="phase-weeks">Semanas 15–17</div>
+      <ul class="phase-list">
+        <li>El usuario firma la aprobación del reporte</li>
+        <li>Se hacen los ajustes finales</li>
+        <li>Se entrega la documentación completa</li>
+        <li>Cierre formal de cada proceso</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-icon">🚀</div>
+      <div class="phase-name">Etapa 5: Producción</div>
+      <div class="phase-weeks">Semanas 17–18</div>
+      <ul class="phase-list">
+        <li>Activar el nuevo reporte en producción</li>
+        <li>Monitorear las primeras ejecuciones</li>
+        <li>El equipo SAS apaga la versión vieja</li>
+        <li>Entrega y cierre del proyecto</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ─── EQUIPO ─── -->
+<div class="sec" id="equipo">
+  <div class="sec-hd"><div class="sec-num">05</div><div class="sec-title">El Equipo y la Distribución de Trabajo</div></div>
+  <div class="sec-line"></div>
+  <div class="g2" style="margin-bottom:22px">
+    <div class="dev-card d1">
+      <div class="dev-name">👨‍💻 Desarrollador 1</div>
+      <div class="dev-role">Especialista en reportes complejos y de dificultad alta</div>
+      <div class="dev-stats">
+        <div><div class="ds-val">18</div><div class="ds-lbl">Reportes asignados</div></div>
+        <div><div class="ds-val">117h</div><div class="ds-lbl">Horas estimadas</div></div>
+        <div><div class="ds-val">49.7%</div><div class="ds-lbl">Carga total</div></div>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:49.7%"></div></div>
+    </div>
+    <div class="dev-card d2">
+      <div class="dev-name">👨‍💻 Desarrollador 2</div>
+      <div class="dev-role">Especialista en reportes de mediana dificultad y de soporte</div>
+      <div class="dev-stats">
+        <div><div class="ds-val">20</div><div class="ds-lbl">Reportes asignados</div></div>
+        <div><div class="ds-val">119h</div><div class="ds-lbl">Horas estimadas</div></div>
+        <div><div class="ds-val">50.3%</div><div class="ds-lbl">Carga total</div></div>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:50.3%"></div></div>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Reporte</th>
+          <th>Dificultad</th>
+          <th>Responsable</th>
+          <th>Tiempo Est.</th>
+          <th>Semana Inicio</th>
+          <th>Semana Fin</th>
+        </tr>
+      </thead>
+      <tbody id="dist-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ─── CRONOGRAMA ─── -->
+<div class="sec" id="cronograma">
+  <div class="sec-hd"><div class="sec-num">06</div><div class="sec-title">Cronograma General — 6 Semanas</div></div>
+  <div class="sec-line"></div>
+  <div class="gantt-box">
+    <div class="gantt-hdr">Línea de tiempo del proyecto </div>
+    <div class="gweeks" id="gweeks"></div>
+    <div id="grows"></div>
+    <div class="milestones" style="margin-top:22px">
+      <span class="milestone">Sem 2 <span>Análisis listo</span></span>
+      <span class="milestone">Sem 5 <span>Primeras entregas</span></span>
+      <span class="milestone">Sem 9 <span>Reportes medios listos</span></span>
+      <span class="milestone">Sem 14 <span>Reportes complejos listos</span></span>
+      <span class="milestone">Sem 16 <span>Todas las aprobaciones</span></span>
+      <span class="milestone">Sem 18 <span>🏁 Producción</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── RIESGOS ─── -->
+<div class="sec" id="riesgos">
+  <div class="sec-hd"><div class="sec-num">07</div><div class="sec-title">Posibles Riesgos y Cómo los Controlamos</div></div>
+  <div class="sec-line"></div>
+  <div class="g2">
+    <div class="risk-card r-alto">
+      <div class="risk-title">⚡ El reporte más grande se demora más de lo previsto</div>
+      <div class="risk-tags"><span class="rtag ia">Impacto: Alto</span><span class="rtag pa">Probabilidad: Alta</span></div>
+      <div class="risk-body"><strong>¿Qué puede pasar?</strong> El reporte de Cosechas de Cartera R es el más complejo y podría tomarnos más tiempo del estimado.<br><strong>Plan de acción:</strong> Lo iniciamos desde el primer día y hacemos seguimiento semanal. Si hay atraso, lo escalamos de inmediato al líder del proyecto.</div>
+    </div>
+    <div class="risk-card r-alto">
+      <div class="risk-title">🔢 Los números del reporte nuevo no coinciden exactamente</div>
+      <div class="risk-tags"><span class="rtag ia">Impacto: Alto</span><span class="rtag pa">Probabilidad: Alta</span></div>
+      <div class="risk-body"><strong>¿Qué puede pasar?</strong> Las dos herramientas (vieja y nueva) pueden calcular decimales de forma ligeramente diferente.<br><strong>Plan de acción:</strong> Definimos desde el inicio cuánta diferencia es aceptable (menos del 0.01%) y revisamos cada resultado con el área de negocio.</div>
+    </div>
+    <div class="risk-card r-medio">
+      <div class="risk-title">📅 El usuario no tiene tiempo para validar a tiempo</div>
+      <div class="risk-tags"><span class="rtag ia">Impacto: Alto</span><span class="rtag pm">Probabilidad: Media</span></div>
+      <div class="risk-body"><strong>¿Qué puede pasar?</strong> Si el usuario del área demora en revisar y aprobar los reportes, el cronograma se ve afectado.<br><strong>Plan de acción:</strong> Agendamos las sesiones de validación con anticipación y definimos un usuario alterno para cada proceso.</div>
+    </div>
+    <div class="risk-card r-medio">
+      <div class="risk-title">🔐 No hay acceso a los datos o al sistema</div>
+      <div class="risk-tags"><span class="rtag ia">Impacto: Alto</span><span class="rtag pm">Probabilidad: Media</span></div>
+      <div class="risk-body"><strong>¿Qué puede pasar?</strong> Problemas de permisos o acceso a los datos retrasan el inicio de los trabajos.<br><strong>Plan de acción:</strong> Gestionamos todos los accesos antes de iniciar el proyecto, en la semana cero.</div>
+    </div>
+    <div class="risk-card r-bajo">
+      <div class="risk-title">👤 Una persona del equipo no está disponible</div>
+      <div class="risk-tags"><span class="rtag ia">Impacto: Alto</span><span class="rtag pm">Probabilidad: Media</span></div>
+      <div class="risk-body"><strong>¿Qué puede pasar?</strong> Como el equipo es de solo 2 personas, si una no está disponible el ritmo se ve afectado.<br><strong>Plan de acción:</strong> Ambas personas conocen el trabajo del otro (revisiones cruzadas) y el cronograma tiene tiempo de reserva incorporado.</div>
+    </div>
+    <div class="risk-card r-bajo">
+      <div class="risk-title">🔗 Un reporte depende de otro que aún no se ha migrado</div>
+      <div class="risk-tags"><span class="rtag im">Impacto: Medio</span><span class="rtag pm">Probabilidad: Media</span></div>
+      <div class="risk-body"><strong>¿Qué puede pasar?</strong> Algunos reportes usan datos que produce otro reporte. Si el "padre" no está listo, el "hijo" tampoco puede construirse.<br><strong>Plan de acción:</strong> En la etapa de análisis mapeamos todas estas dependencias y priorizamos el orden correcto.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ÉXITO ─── -->
+<div class="sec" id="exito">
+  <div class="sec-hd"><div class="sec-num">08</div><div class="sec-title">¿Cómo sabremos que el proyecto fue exitoso?</div></div>
+  <div class="sec-line"></div>
+  <div class="g3">
+    <div class="metric-card">
+      <div class="metric-val">100%</div>
+      <div class="metric-name">Reportes migrados</div>
+      <div class="metric-desc">Los 38 reportes del inventario deben estar funcionando en la nueva plataforma antes de cerrar el proyecto</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">≥ 95%</div>
+      <div class="metric-name">Resultados idénticos</div>
+      <div class="metric-desc">Al menos el 95% de los registros del reporte nuevo deben coincidir exactamente con el reporte viejo</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">≤ 0.01%</div>
+      <div class="metric-name">Diferencia aceptable</div>
+      <div class="metric-desc">Máxima diferencia permitida en valores numéricos (como montos o conteos), acordada con el área de negocio</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">0</div>
+      <div class="metric-name">Errores en producción</div>
+      <div class="metric-desc">Ningún error crítico de negocio durante el mes de estabilización tras el lanzamiento</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">✔️</div>
+      <div class="metric-name">Aprobación del usuario</div>
+      <div class="metric-desc">Cada reporte debe tener la firma de aprobación del responsable funcional del área antes de pasar a producción</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">6 sem</div>
+      <div class="metric-name">Dentro del plazo</div>
+      <div class="metric-desc">El proyecto debe completarse en las 6 semanas planificadas, sin superar el tiempo estimado en más de un 10%</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CONCLUSIONES ─── -->
+<div class="sec" id="conclusiones">
+  <div class="sec-hd"><div class="sec-num">09</div><div class="sec-title">Conclusiones y Próximos Pasos</div></div>
+  <div class="sec-line"></div>
+  <div class="g3">
+    <div class="rec-card">
+      <div class="rec-icon">📋</div>
+      <div class="rec-title">Empezar por los más grandes</div>
+      <div class="rec-body">El reporte más complejo (Cosechas de Cartera R) debe iniciarse en la semana 1. Atacar primero lo más difícil reduce el riesgo de quedarnos sin tiempo al final del proyecto.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon">🤝</div>
+      <div class="rec-title">Involucrar al área desde el inicio</div>
+      <div class="rec-body">Los usuarios del área deben participar en la validación de cada reporte. Son ellos quienes mejor conocen si el resultado es correcto. Sin su participación, el proyecto no puede avanzar.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon">📊</div>
+      <div class="rec-title">Seguimiento semanal</div>
+      <div class="rec-body">Se recomienda una reunión breve cada semana para revisar el avance, identificar bloqueos y tomar decisiones rápidas. La transparencia en el avance es clave para cumplir el cronograma.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon">🔒</div>
+      <div class="rec-title">No apagar el sistema viejo hasta estar seguros</div>
+      <div class="rec-body">El reporte en la herramienta antigua se mantiene activo hasta que el usuario valide y apruebe el nuevo. Solo después se hace el corte definitivo, evitando riesgos operativos.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon">📝</div>
+      <div class="rec-title">Documentar todo</div>
+      <div class="rec-body">Cada reporte migrado debe quedar documentado: qué hace, qué datos usa, quién lo aprobó y cuándo. Esto facilita el mantenimiento futuro y el onboarding de nuevas personas al equipo.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon">🎉</div>
+      <div class="rec-title">Celebrar los hitos</div>
+      <div class="rec-body">Reconocer el avance en cada etapa clave mantiene la motivación del equipo. Proyectos de esta duración requieren hitos claros y celebración de logros intermedios.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2026 <strong>BBVA Colombia</strong> · Área de Recoveries · Documento de Planeación</div>
+  <div>Mayo 2026 · Versión 1.0 · <strong>Uso Interno</strong></div>
+</footer>
+
+</div><!-- /main -->
+
+<script>
+// ─── DATA ───
+const PROCESSES = [
+  {nombre:"Plan Táctico Informes",               dif:"Media", horas:4.66,  dev:1, si:3,  sf:4},
+  {nombre:"Cosechas de cartera R",               dif:"Muy Alta",horas:26.74,dev:1,si:1,sf:6},
+  {nombre:"Behavioral Economics",                dif:"Baja",  horas:3.65,  dev:2, si:3,  sf:3},
+  {nombre:"Reporte formato 343",                 dif:"Baja",  horas:2.35,  dev:1, si:3,  sf:3},
+  {nombre:"Extracción contabilidad Archivos QH", dif:"Baja",  horas:1.61,  dev:2, si:4,  sf:4},
+  {nombre:"ADN",                                 dif:"Baja",  horas:1.76,  dev:1, si:4,  sf:4},
+  {nombre:"Asignación IB",                       dif:"Baja",  horas:2.19,  dev:2, si:4,  sf:5},
+  {nombre:"Correos Masiva 50Legal",              dif:"Baja",  horas:1.72,  dev:1, si:4,  sf:5},
+  {nombre:"Desvinculación de cuentas",           dif:"Baja",  horas:2.27,  dev:2, si:5,  sf:5},
+  {nombre:"Informe Asobancaria",                 dif:"Baja",  horas:1.53,  dev:1, si:5,  sf:5},
+  {nombre:"INSOLV CONCUR DATIO",                 dif:"Baja",  horas:1.40,  dev:2, si:5,  sf:5},
+  {nombre:"JUDICIAL PARA DATIO",                 dif:"Baja",  horas:1.74,  dev:1, si:5,  sf:6},
+  {nombre:"KPI HOLDING",                         dif:"Baja",  horas:3.05,  dev:2, si:5,  sf:6},
+  {nombre:"Cartera 777",                         dif:"Media", horas:4.00,  dev:1, si:6,  sf:6},
+  {nombre:"Retarget",                            dif:"Media", horas:8.04,  dev:2, si:6,  sf:7},
+  {nombre:"AL DIA",                              dif:"Baja",  horas:1.38,  dev:1, si:6,  sf:6},
+  {nombre:"Seguimiento Fondos (FNG-FAG)",        dif:"Media", horas:5.24,  dev:2, si:6,  sf:7},
+  {nombre:"Objetivos y Seguimiento Campañas",    dif:"Media", horas:8.42,  dev:1, si:7,  sf:8},
+  {nombre:"Base Fish",                           dif:"Media", horas:4.10,  dev:2, si:7,  sf:8},
+  {nombre:"Base Insolvencia",                    dif:"Media", horas:7.16,  dev:1, si:8,  sf:9},
+  {nombre:"Calificación uso de cupos",           dif:"Media", horas:4.27,  dev:2, si:8,  sf:9},
+  {nombre:"Clientes",                            dif:"Media", horas:4.10,  dev:1, si:9,  sf:9},
+  {nombre:"Consolidado de aceptaciones Tranki",  dif:"Media", horas:4.84,  dev:2, si:9,  sf:10},
+  {nombre:"Desempleo",                           dif:"Media", horas:3.76,  dev:1, si:9,  sf:10},
+  {nombre:"DIY",                                 dif:"Media", horas:5.72,  dev:2, si:10, sf:11},
+  {nombre:"Cancelados",                          dif:"Baja",  horas:1.38,  dev:1, si:10, sf:10},
+  {nombre:"Seguimiento de NDOD",                 dif:"Media", horas:5.30,  dev:2, si:10, sf:11},
+  {nombre:"Seguimiento de NDOD t-1",             dif:"Media", horas:5.05,  dev:1, si:11, sf:12},
+  {nombre:"Seguimiento clubes",                  dif:"Alta",  horas:17.65, dev:2, si:7,  sf:11},
+  {nombre:"Seguimiento FGA",                     dif:"Alta",  horas:9.64,  dev:1, si:11, sf:13},
+  {nombre:"Saldos a favor estanco FNG",          dif:"Alta",  horas:15.15, dev:2, si:9,  sf:13},
+  {nombre:"Investigación laboral",               dif:"Baja",  horas:1.61,  dev:1, si:12, sf:12},
+  {nombre:"Pólizas Endosadas",                   dif:"Baja",  horas:1.95,  dev:2, si:12, sf:12},
+  {nombre:"Facturación preventiva particulares", dif:"Alta",  horas:10.02, dev:1, si:11, sf:13},
+  {nombre:"Gestión(3M)",                         dif:"Alta",  horas:15.33, dev:2, si:12, sf:15},
+  {nombre:"Torres de Cartagena",                 dif:"Media", horas:5.05,  dev:1, si:12, sf:13},
+  {nombre:"Padres e hijos",                      dif:"Alta",  horas:14.33, dev:1, si:13, sf:15},
+  {nombre:"Venta individual",                    dif:"Alta",  horas:18.01, dev:2, si:13, sf:16},
+];
+
+function difTag(d){
+  if(d==='Baja') return '<span class="tag tag-baja">Baja</span>';
+  if(d==='Media') return '<span class="tag tag-media">Media</span>';
+  if(d==='Alta') return '<span class="tag tag-alta">Alta</span>';
+  return '<span class="tag tag-xl">Muy Alta</span>';
+}
+function devTag(n){
+  return n===1
+    ? '<span class="tag tag-1">Desarrollador 1</span>'
+    : '<span class="tag tag-2">Desarrollador 2</span>';
+}
+function prioTag(d){
+  if(d==='Baja') return '<span class="tag" style="background:#F1F5F9;color:#475569">Normal</span>';
+  if(d==='Media') return '<span class="tag tag-media">Importante</span>';
+  return '<span class="tag tag-alta">Prioritario</span>';
+}
+
+// INVENTARIO TABLE
+const pt = document.getElementById('proc-tbody');
+PROCESSES.forEach((p,i)=>{
+  pt.innerHTML += `<tr>
+    <td>${i+1}</td>
+    <td><strong>${p.nombre}</strong></td>
+    <td>${difTag(p.dif)}</td>
+    <td><strong>${p.horas.toFixed(1)}h</strong></td>
+    <td style="color:#6B7A99;font-size:.78rem">Equipo Recoveries</td>
+    <td>${prioTag(p.dif)}</td>
+  </tr>`;
+});
+
+// DISTRIBUCIÓN TABLE
+const dt = document.getElementById('dist-tbody');
+[...PROCESSES].sort((a,b)=>a.dev-b.dev||a.si-b.si).forEach((p,i)=>{
+  dt.innerHTML += `<tr>
+    <td>${i+1}</td>
+    <td><strong>${p.nombre}</strong></td>
+    <td>${difTag(p.dif)}</td>
+    <td>${devTag(p.dev)}</td>
+    <td><strong>${p.horas.toFixed(1)}h</strong></td>
+    <td style="text-align:center">Sem ${p.si}</td>
+    <td style="text-align:center">Sem ${p.sf}</td>
+  </tr>`;
+});
+
+// CHARTS
+const C = {green:'#00A878',amber:'#F59E0B',red:'#E63946',blue:'#004481',sky:'#49A5E6',purple:'#7C3AED'};
+
+new Chart(document.getElementById('chartDif'),{
+  type:'doughnut',
+  data:{labels:['Baja','Media','Alta','Muy Alta'],
+    datasets:[{data:[15,15,7,1],backgroundColor:[C.green,C.amber,C.red,C.purple],borderWidth:2,borderColor:'#fff'}]},
+  options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},responsive:true}
+});
+
+const hBaja=PROCESSES.filter(p=>p.dif==='Baja').reduce((a,b)=>a+b.horas,0);
+const hMedia=PROCESSES.filter(p=>p.dif==='Media').reduce((a,b)=>a+b.horas,0);
+const hAlta=PROCESSES.filter(p=>p.dif==='Alta').reduce((a,b)=>a+b.horas,0);
+const hXL=PROCESSES.filter(p=>p.dif==='Muy Alta').reduce((a,b)=>a+b.horas,0);
+new Chart(document.getElementById('chartH'),{
+  type:'bar',
+  data:{labels:['Baja','Media','Alta','Muy Alta'],
+    datasets:[{label:'Horas',data:[hBaja.toFixed(1),hMedia.toFixed(1),hAlta.toFixed(1),hXL.toFixed(1)],
+      backgroundColor:[C.green,C.amber,C.red,C.purple],borderRadius:6}]},
+  options:{plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,grid:{color:'#F1F5F9'}},x:{grid:{display:false}}},responsive:true}
+});
+
+// GANTT
+const TOTAL=6;
+const gw=document.getElementById('gweeks');
+const gr=document.getElementById('grows');
+for(let i=1;i<=TOTAL;i++) gw.innerHTML+=`<div class="gweek">S${i}</div>`;
+
+const GANTT=[
+  {label:'🔍 Análisis y Diseño',si:1,sf:1,color:C.blue},
+  {label:'🛠️ Procesos Baja Complejidad',si:1,sf:2,color:C.green},
+  {label:'🛠️ Procesos Media Complejidad',si:2,sf:4,color:C.amber},
+  {label:'🛠️ Procesos Alta Complejidad',si:3,sf:4,color:C.red},
+  {label:'🛠️ Cosechas XL',si:1,sf:3,color:C.purple},
+  {label:'🔬 Validación SAS vs PySpark',si:1,sf:5,color:C.sky},
+  {label:'✅ Aprobación Funcional',si:2,sf:5,color:C.blue},
+  {label:'🚀 Producción',si:2,sf:6,color:C.green}
+];
+
+GANTT.forEach(g=>{
+  const sp=((g.si-1)/TOTAL)*100;
+  const wp=((g.sf-g.si+1)/TOTAL)*100;
+  gr.innerHTML+=`<div class="grow">
+    <div class="glabel">${g.label}</div>
+    <div class="gtrack">
+      <div class="gbar" style="left:${sp}%;width:${wp}%;background:${g.color}">S${g.si}–S${g.sf}</div>
+    </div>
+  </div>`;
+});
+
+// ACTIVE NAV
+const sections=document.querySelectorAll('.sec,.hero');
+const links=document.querySelectorAll('.sb-link');
+const obs=new IntersectionObserver(e=>{
+  e.forEach(en=>{
+    if(en.isIntersecting){
+      const id=en.target.id;
+      links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+id));
+    }
+  });
+},{threshold:0.25});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

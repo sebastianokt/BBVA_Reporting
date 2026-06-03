@@ -1,0 +1,96 @@
+.stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.panel-card {
+  border-radius: 1rem;
+  border: none;
+  box-shadow: 0 14px 36px rgba(7, 33, 70, 0.08);
+}
+
+.kpi-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.kpi-group {
+  border-top: 3px solid var(--bbva-navy);
+  padding-top: 0.75rem;
+}
+
+.kpi-group-title {
+  color: var(--bbva-navy);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  margin-bottom: 0.65rem;
+  text-transform: uppercase;
+}
+
+.module-tabs .btn {
+  border-radius: 999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.week-control {
+  max-width: 220px;
+}
+
+.tag-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+}
+
+.tag-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tag-done {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.tag-validating {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tag-in-process {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.table thead th {
+  background: var(--bbva-navy);
+  color: #fff;
+  font-size: 0.7rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.status-select {
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.chart-box {
+  min-height: 240px;
+}
+
+.chart-empty {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7a99;
+  font-size: 0.8rem;
+}

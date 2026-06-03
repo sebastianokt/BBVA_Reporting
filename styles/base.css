@@ -1,0 +1,14 @@
+:root {
+  --bbva-navy: #072146;
+  --bbva-blue: #004481;
+  --bbva-mid: #1973b8;
+  --bbva-sky: #49a5e6;
+  --bbva-soft: #f5f7fa;
+  --bbva-ink: #1a2942;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  background: var(--bbva-soft);
+  color: var(--bbva-ink);
+}
