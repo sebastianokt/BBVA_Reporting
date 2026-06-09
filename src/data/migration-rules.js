@@ -48,7 +48,7 @@ export const buildMigrationStatus = (rawValue) => {
 export const buildValidationStatus = (rawValue) => {
   if (!rawValue) return MIGRATION_STATUS.pending;
   const normalized = normalizeKey(rawValue);
-  if (["si", "s", "ok", "validando", "ya", "x", "true", "verdadero"].includes(normalized)) {
+  if (["si", "s", "ok", "validando", "ya", "x", "true", "verdadero","1"].includes(normalized)) {
     return MIGRATION_STATUS.validating;
   }
   return MIGRATION_STATUS.pending;
