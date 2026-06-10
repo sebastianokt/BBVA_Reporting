@@ -1,5 +1,5 @@
 # GRAFICAS PROCESOS
-
+d
 Dashboard estatico para visualizar avance de migracion, procesos, cronograma, KPIs, graficas y validaciones usando Google Sheets como fuente principal.
 
 ## Publicacion
