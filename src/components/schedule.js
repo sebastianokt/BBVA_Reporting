@@ -77,13 +77,13 @@ const buildItemLabel = (entry) => {
         </div>
       </div>
       <div class="schedule-comment">
-        <textarea
+        <input
           class="schedule-comment-input"
           data-process-id="${escapeHtml(processId)}"
           ${processId ? "" : "disabled"}
-          rows="2"
           placeholder="${processId ? "Novedad del proceso" : "Sin ID_PROCESO"}"
-        >${escapeHtml(comments)}</textarea>
+          value="${escapeHtml(comments)}"
+        />
         <div class="schedule-comment-actions">
           <button
             class="btn btn-outline-primary btn-sm schedule-comment-save-button"
