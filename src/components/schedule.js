@@ -43,27 +43,66 @@ const groupSchedule = (entries) => {
   });
 };
 
+const getStatusClass = (status) => {
+  if (status === MIGRATION_STATUS.done) return "tag-done";
+  if (status === MIGRATION_STATUS.validating) return "tag-validating";
+  if (status === MIGRATION_STATUS.inProcess) return "tag-in-process";
+  return "tag-pending";
+};
+
 const buildItemLabel = (entry) => {
   const title = entry.processName || entry.linkedProcess?.name || "Proceso";
   const status = entry.linkedProcess?.migrationStatus || MIGRATION_STATUS.pending;
+  const processId = String(entry.processId || entry.linkedProcess?.processId || "").trim();
+  const comments = entry.linkedProcess?.comments || "";
   const details = [entry.part, entry.client]
     .filter(Boolean)
     .map((value) => escapeHtml(value))
-    .join(" - ");
-  const suffix = details ? `<span>${details}</span>` : "";
+    .join(" · ");
+  const meta = [
+    processId ? `ID ${escapeHtml(processId)}` : "Sin ID_PROCESO",
+    details,
+  ].filter(Boolean).join(" · ");
 
   return `
-    <li>
-      <strong>${escapeHtml(title)}</strong>
-      ${suffix}
-      <span>${formatNumber(entry.hours || 0, 1)}h - ${escapeHtml(displayStatus(status))}</span>
-    </li>
+    <div class="schedule-item">
+      <div class="schedule-item-main">
+        <div>
+          <div class="schedule-item-title">${escapeHtml(title)}</div>
+          <div class="schedule-item-meta">${meta}</div>
+        </div>
+        <div class="schedule-item-badges">
+          <span class="tag-pill ${getStatusClass(status)}">${escapeHtml(displayStatus(status))}</span>
+          <span class="schedule-hours">${formatNumber(entry.hours || 0, 1)}h</span>
+        </div>
+      </div>
+      <div class="schedule-comment">
+        <textarea
+          class="schedule-comment-input"
+          data-process-id="${escapeHtml(processId)}"
+          ${processId ? "" : "disabled"}
+          rows="2"
+          placeholder="${processId ? "Novedad del proceso" : "Sin ID_PROCESO"}"
+        >${escapeHtml(comments)}</textarea>
+        <div class="schedule-comment-actions">
+          <button
+            class="btn btn-outline-primary btn-sm schedule-comment-save-button"
+            type="button"
+            data-process-id="${escapeHtml(processId)}"
+            ${processId ? "" : "disabled"}
+          >
+            Guardar
+          </button>
+          <span class="comment-feedback text-muted"></span>
+        </div>
+      </div>
+    </div>
   `;
 };
 
 const buildList = (items) => {
-  if (!items.length) return '<div class="person-list empty">Sin procesos</div>';
-  return `<ul class="process-list">${items.map(buildItemLabel).join("")}</ul>`;
+  if (!items.length) return '<div class="schedule-empty">Sin procesos</div>';
+  return `<div class="schedule-items">${items.map(buildItemLabel).join("")}</div>`;
 };
 
 export const renderWeeklySchedule = (scheduleEntries = []) => {
@@ -87,14 +126,19 @@ export const renderWeeklySchedule = (scheduleEntries = []) => {
       const people = Array.from(week.people.values()).sort((a, b) =>
         getDisplayName({ person: a.name }).localeCompare(getDisplayName({ person: b.name }))
       );
-      const pills = people
-        .map((person) => `<span class="pill">${escapeHtml(displayResponsible(person.name))}: ${formatNumber(person.totalHours, 1)}h</span>`)
-        .join("");
+      const processCount = new Set(
+        people.flatMap((person) => person.items.map((item) => String(item.processId || "").trim()).filter(Boolean))
+      ).size;
       const peopleBlocks = people
         .map((person) => `
           <div class="schedule-person">
-            <div class="person-name">${escapeHtml(displayResponsible(person.name))}</div>
-            <div class="person-metrics">${person.items.length} partes - ${formatNumber(person.totalHours, 1)}h</div>
+            <div class="schedule-person-header">
+              <div>
+                <div class="person-name">${escapeHtml(displayResponsible(person.name))}</div>
+                <div class="person-metrics">${person.items.length} partes · ${formatNumber(person.totalHours, 1)}h</div>
+              </div>
+              <span class="pill">${formatNumber(person.totalHours, 1)}h</span>
+            </div>
             ${buildList(person.items)}
           </div>
         `)
@@ -107,7 +151,11 @@ export const renderWeeklySchedule = (scheduleEntries = []) => {
             ${title}
             <span>${formatNumber(week.totalHours, 1)}h planificadas</span>
           </div>
-          <div class="person-pills">${pills}</div>
+          <div class="schedule-summary">
+            <span>${processCount} procesos</span>
+            <span>${people.length} responsables</span>
+            <span>${people.reduce((total, person) => total + person.items.length, 0)} partes</span>
+          </div>
           <div class="schedule-people">${peopleBlocks}</div>
         </div>
       `;

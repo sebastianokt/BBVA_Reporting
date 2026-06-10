@@ -4,6 +4,7 @@ import { setActiveModule, setActiveTeam } from "../components/sidebar.js";
 import { renderDashboard, renderEmptyState } from "../components/ui-state.js";
 import { filterProcesses, filterScheduleEntries, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
 import { displayResponsible } from "../services/format.js";
+import { mergeProcessComments, saveProcessComment } from "../services/comments.js";
 import {
   appendHistoryEvent,
   loadHistoryEvents,
@@ -71,6 +72,92 @@ const applyStoredStatus = (processes) => {
     const stored = state.statusMap[process.key];
     if (stored) process.migrationStatus = stored;
   });
+};
+
+const relinkScheduleEntries = (scheduleEntries, processes) => {
+  const processesById = new Map(
+    processes
+      .filter((process) => process.processId)
+      .map((process) => [String(process.processId).trim(), process])
+  );
+
+  return scheduleEntries.map((entry) => {
+    const processId = String(entry.processId || "").trim();
+    return {
+      ...entry,
+      linkedProcess: processesById.get(processId) || entry.linkedProcess || null,
+    };
+  });
+};
+
+const updateProcessCommentState = ({ processId, comments, updatedAt, userName }) => {
+  const cleanProcessId = String(processId || "").trim();
+  state.allProcesses.forEach((process) => {
+    if (String(process.processId || "").trim() !== cleanProcessId) return;
+    process.comments = comments;
+    process.commentUpdatedAt = updatedAt;
+    process.commentUserName = userName;
+  });
+  state.scheduleEntries.forEach((entry) => {
+    if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
+    entry.linkedProcess.comments = comments;
+    entry.linkedProcess.commentUpdatedAt = updatedAt;
+    entry.linkedProcess.commentUserName = userName;
+  });
+};
+
+const syncCommentControls = (processId, comments) => {
+  document
+    .querySelectorAll(".comment-input, .schedule-comment-input")
+    .forEach((input) => {
+      if (input.dataset.processId === processId) input.value = comments;
+    });
+};
+
+const handleCommentSave = async ({ processId, textarea, feedback, button }) => {
+  const cleanProcessId = String(processId || "").trim();
+  const comments = textarea?.value || "";
+  const match = state.allProcesses.find((process) => String(process.processId || "").trim() === cleanProcessId);
+  if (!match || !textarea || !feedback || !button) return;
+
+  button.disabled = true;
+  textarea.disabled = true;
+  feedback.textContent = "Guardando...";
+  feedback.className = "comment-feedback text-muted";
+
+  try {
+    const saved = await saveProcessComment({
+      processId: cleanProcessId,
+      comments,
+      userName: localStorage.getItem("dashboard-user") || "local",
+    });
+    const savedComment = {
+      processId: cleanProcessId,
+      comments: saved.comments ?? comments,
+      updatedAt: saved.updatedAt || new Date().toISOString(),
+      userName: saved.userName || localStorage.getItem("dashboard-user") || "local",
+    };
+    updateProcessCommentState(savedComment);
+    syncCommentControls(cleanProcessId, savedComment.comments);
+    await appendHistoryEvent({
+      entityType: "process",
+      entityId: cleanProcessId,
+      eventType: "comment",
+      fieldName: "comments",
+      oldValue: "",
+      newValue: savedComment.comments,
+      source: "google-sheet",
+      userName: savedComment.userName,
+    });
+    feedback.textContent = "Guardado";
+    feedback.className = "comment-feedback text-success";
+  } catch (error) {
+    feedback.textContent = "Error al guardar";
+    feedback.className = "comment-feedback text-danger";
+  } finally {
+    button.disabled = false;
+    textarea.disabled = false;
+  }
 };
 
 const updateResponsableOptions = (processes) => {
@@ -146,8 +233,8 @@ const handleResult = async (result, fileName = DEFAULT_FILE_NAME) => {
     return;
   }
 
-  state.allProcesses = result.processes;
-  state.scheduleEntries = result.scheduleEntries || [];
+  state.allProcesses = mergeProcessComments(result.processes, result.commentsByProcessId || {});
+  state.scheduleEntries = relinkScheduleEntries(result.scheduleEntries || [], state.allProcesses);
   state.sourceFileName = fileName;
   applyStoredStatus(state.allProcesses);
   state.historyEvents = await loadHistoryEvents();
@@ -222,6 +309,32 @@ document.getElementById("process-table-body")?.addEventListener("change", async 
     state.historyEvents = await loadHistoryEvents();
   }
   applyFilters();
+});
+
+document.getElementById("process-table-body")?.addEventListener("click", async (event) => {
+  const button = event.target.closest(".comment-save-button");
+  if (!button) return;
+
+  const row = button.closest("tr");
+  await handleCommentSave({
+    processId: button.dataset.processId || "",
+    textarea: row?.querySelector(".comment-input"),
+    feedback: row?.querySelector(".comment-feedback"),
+    button,
+  });
+});
+
+document.getElementById("weekly-schedule")?.addEventListener("click", async (event) => {
+  const button = event.target.closest(".schedule-comment-save-button");
+  if (!button) return;
+
+  const item = button.closest(".schedule-item");
+  await handleCommentSave({
+    processId: button.dataset.processId || "",
+    textarea: item?.querySelector(".schedule-comment-input"),
+    feedback: item?.querySelector(".comment-feedback"),
+    button,
+  });
 });
 
 reloadButton?.addEventListener("click", tryAutoLoad);

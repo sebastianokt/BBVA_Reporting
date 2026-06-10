@@ -82,6 +82,32 @@
   font-size: 0.75rem;
 }
 
+.comment-control {
+  min-width: 220px;
+}
+
+.comment-input {
+  border: 1px solid rgba(7, 33, 70, 0.16);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  min-height: 64px;
+  padding: 0.45rem 0.55rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.comment-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.comment-feedback {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .chart-box {
   min-height: 240px;
 }

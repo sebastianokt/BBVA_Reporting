@@ -233,3 +233,39 @@ export const parseScheduleWorksheet = (worksheet, processes = []) => {
 
   return { scheduleEntries, warnings };
 };
+
+export const parseCommentsWorksheet = (worksheet) => {
+  if (!worksheet) return { commentsByProcessId: {}, warnings: [] };
+
+  const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+  const headers = rows[0] || [];
+  const headerMap = buildHeaderMap(headers);
+  const idx = {
+    processId: findIndexByKey(headerMap, ["id proceso", "id_proceso"]),
+    comments: findIndexByKey(headerMap, ["comentarios", "comentario", "novedades", "novedad"]),
+    updatedAt: findIndexByKey(headerMap, ["fecha", "actualizado", "fecha actualizacion"]),
+    userName: findIndexByKey(headerMap, ["usuario", "user", "responsable"]),
+  };
+
+  const warnings = [];
+  if (idx.processId === -1) warnings.push("No se encontro columna ID_PROCESO en Comentarios.");
+  if (idx.comments === -1) warnings.push("No se encontro columna Comentarios en Comentarios.");
+  if (warnings.length) return { commentsByProcessId: {}, warnings };
+
+  const commentsByProcessId = {};
+  rows
+    .slice(1)
+    .filter((row) => row.some((value) => String(value).trim() !== ""))
+    .forEach((row) => {
+      const processId = String(getCell(row, idx.processId) ?? "").trim();
+      if (!processId) return;
+      commentsByProcessId[processId] = {
+        processId,
+        comments: String(getCell(row, idx.comments) ?? "").trim(),
+        updatedAt: String(getCell(row, idx.updatedAt) ?? "").trim(),
+        userName: String(getCell(row, idx.userName) ?? "").trim(),
+      };
+    });
+
+  return { commentsByProcessId, warnings };
+};

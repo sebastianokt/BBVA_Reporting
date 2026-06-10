@@ -32,7 +32,13 @@ const writeJson = (key, value) => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
+const shouldUseApi = () => {
+  if (typeof window === "undefined") return false;
+  return !window.location.hostname.endsWith("github.io");
+};
+
 const apiRequest = async (path, options = {}) => {
+  if (!shouldUseApi()) return null;
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       headers: { "Content-Type": "application/json" },

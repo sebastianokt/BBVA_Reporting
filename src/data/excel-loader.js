@@ -1,6 +1,6 @@
 import { DEFAULT_FILE_NAME } from "../config/constants.js";
 import { normalizeKey } from "./migration-rules.js";
-import { parseScheduleWorksheet, parseWorksheet } from "./process-parser.js";
+import { parseCommentsWorksheet, parseScheduleWorksheet, parseWorksheet } from "./process-parser.js";
 
 const findSheetName = (workbook, candidates) => {
   const normalizedCandidates = candidates.map((candidate) => normalizeKey(candidate));
@@ -13,17 +13,22 @@ const parseWorkbook = (data, type) => {
   const workbook = XLSX.read(data, { type });
   const processSheetName = findSheetName(workbook, ["Hoja 1"]) || workbook.SheetNames[0];
   const scheduleSheetName = findSheetName(workbook, ["Cronograma"]);
+  const commentsSheetName = findSheetName(workbook, ["Comentarios"]);
 
   const processResult = parseWorksheet(workbook.Sheets[processSheetName]);
   const scheduleResult = parseScheduleWorksheet(
     scheduleSheetName ? workbook.Sheets[scheduleSheetName] : null,
     processResult.processes
   );
+  const commentsResult = parseCommentsWorksheet(
+    commentsSheetName ? workbook.Sheets[commentsSheetName] : null
+  );
 
   return {
     processes: processResult.processes,
     scheduleEntries: scheduleResult.scheduleEntries,
-    warnings: [...processResult.warnings, ...scheduleResult.warnings],
+    commentsByProcessId: commentsResult.commentsByProcessId,
+    warnings: [...processResult.warnings, ...scheduleResult.warnings, ...commentsResult.warnings],
   };
 };
 

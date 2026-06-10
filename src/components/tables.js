@@ -37,6 +37,28 @@ export const renderTable = (processes) => {
               </select>
             </div>
           </td>
+          <td>
+            <div class="comment-control">
+              <textarea
+                class="comment-input"
+                data-process-id="${escapeHtml(process.processId || "")}"
+                ${process.processId ? "" : "disabled"}
+                rows="2"
+                placeholder="${process.processId ? "Escribir novedad" : "Sin ID_PROCESO"}"
+              >${escapeHtml(process.comments || "")}</textarea>
+              <div class="comment-actions">
+                <button
+                  class="btn btn-outline-primary btn-sm comment-save-button"
+                  type="button"
+                  data-process-id="${escapeHtml(process.processId || "")}"
+                  ${process.processId ? "" : "disabled"}
+                >
+                  Guardar
+                </button>
+                <span class="comment-feedback text-muted"></span>
+              </div>
+            </div>
+          </td>
           <td><strong>${formatNumber(process.hours, 1)}h</strong></td>
           <td>${formatNumber(process.factor, 1)}</td>
           <td>${formatNumber(process.score, 1)}</td>

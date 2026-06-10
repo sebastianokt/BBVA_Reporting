@@ -40,6 +40,23 @@
   font-weight: 600;
 }
 
+.schedule-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0.8rem;
+}
+
+.schedule-summary span {
+  background: #eef5ff;
+  border: 1px solid rgba(73, 165, 230, 0.2);
+  border-radius: 999px;
+  color: var(--bbva-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+}
+
 .schedule-range {
   font-size: 0.75rem;
   color: #6b7a99;
@@ -75,6 +92,14 @@
   padding: 0.7rem 0.8rem;
 }
 
+.schedule-person-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.65rem;
+}
+
 .person-name {
   font-size: 0.78rem;
   font-weight: 700;
@@ -93,4 +118,100 @@
   font-size: 0.8rem;
   color: var(--bbva-ink);
   line-height: 1.6;
+}
+
+.schedule-items {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.schedule-item {
+  background: #f8fbff;
+  border: 1px solid rgba(7, 33, 70, 0.08);
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 0.9fr);
+  padding: 0.75rem;
+}
+
+.schedule-item-main {
+  align-items: start;
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+}
+
+.schedule-item-title {
+  color: var(--bbva-ink);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.schedule-item-meta {
+  color: #6b7a99;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 0.2rem;
+}
+
+.schedule-item-badges {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.schedule-hours {
+  background: #ffffff;
+  border: 1px solid rgba(7, 33, 70, 0.1);
+  border-radius: 999px;
+  color: var(--bbva-navy);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.55rem;
+}
+
+.schedule-comment {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.schedule-comment-input {
+  border: 1px solid rgba(7, 33, 70, 0.14);
+  border-radius: 0.55rem;
+  font-size: 0.75rem;
+  min-height: 58px;
+  padding: 0.45rem 0.55rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.schedule-comment-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.schedule-empty {
+  color: #6b7a99;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 900px) {
+  .schedule-item {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-item-main {
+    flex-direction: column;
+  }
+
+  .schedule-item-badges {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }
