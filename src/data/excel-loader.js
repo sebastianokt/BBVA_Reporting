@@ -33,8 +33,8 @@ export const loadFromFile = async (file) => {
 };
 
 export const loadFromUrl = async (url = DEFAULT_FILE_NAME) => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Archivo no disponible");
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Fuente no disponible (${response.status})`);
   const data = await response.arrayBuffer();
   return parseWorkbook(data, "array");
 };

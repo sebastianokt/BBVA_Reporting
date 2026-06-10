@@ -1,4 +1,4 @@
-import { MIGRATION_STATUS } from "../config/constants.js";
+import { LOCAL_EXCEL_FILE_NAME, MIGRATION_STATUS } from "../config/constants.js";
 import { DEFAULT_FILE_NAME, loadFromFile, loadFromUrl } from "../data/excel-loader.js";
 import { setActiveModule, setActiveTeam } from "../components/sidebar.js";
 import { renderDashboard, renderEmptyState } from "../components/ui-state.js";
@@ -171,12 +171,12 @@ const handleResult = async (result, fileName = DEFAULT_FILE_NAME) => {
 };
 
 const tryAutoLoad = async () => {
-  setStatus(`Buscando ${DEFAULT_FILE_NAME}...`);
+  setStatus("Buscando datos en Google Sheet...");
   try {
     await handleResult(await loadFromUrl(DEFAULT_FILE_NAME), DEFAULT_FILE_NAME);
   } catch (error) {
-    setStatus("No se encontró el archivo automáticamente. Usa Cargar Excel.", "error");
-    renderEmptyState("Carga el Excel para ver los gráficos y el reparto de horas.");
+    setStatus("No se pudo cargar el Google Sheet. Usa Cargar Excel como respaldo.", "error");
+    renderEmptyState(`Carga el Excel local (${LOCAL_EXCEL_FILE_NAME}) para ver los gráficos y el reparto de horas.`);
   }
 };
 

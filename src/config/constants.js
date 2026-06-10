@@ -1,4 +1,7 @@
-export const DEFAULT_FILE_NAME = "assets/data/procesos-migracion-propia.xlsx";
+export const LOCAL_EXCEL_FILE_NAME = "assets/data/procesos-migracion-propia.xlsx";
+export const GOOGLE_SHEET_ID = "ID_DEL_SHEET";
+export const GOOGLE_SHEET_XLSX_URL = `https://docs.google.com/spreadsheets/d/12OjE-5Vj3fUekTlS3x_7dBFlr-85PeqkKZSfiNJsGsE/export?format=xlsx`;
+export const DEFAULT_FILE_NAME = GOOGLE_SHEET_XLSX_URL;
 export const API_BASE_URL =
   typeof window !== "undefined" && window.location.protocol !== "file:"
     ? `${window.location.origin}/api`
