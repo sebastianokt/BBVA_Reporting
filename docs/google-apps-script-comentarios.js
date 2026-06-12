@@ -4,6 +4,9 @@ const HEADER_ID = "ID_PROCESO";
 const HEADER_COMMENTS = "Comentarios";
 const HEADER_DATE = "Fecha";
 const HEADER_USER = "Usuario";
+const HEADER_DONE = "Ya migrado";
+const HEADER_IN_PROCESS = "En proceso";
+const HEADER_VALIDATING = "Validando";
 
 const jsonResponse = (payload) => {
   return ContentService
@@ -30,6 +33,13 @@ const getHeaderMap = (sheet) => {
   }, {});
 };
 
+const findColumnByContains = (sheet, fragment) => {
+  const needle = normalize(fragment);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const index = headers.findIndex((header) => normalize(header).includes(needle));
+  return index === -1 ? null : index + 1;
+};
+
 const ensureCommentsSheet = (spreadsheet) => {
   let sheet = spreadsheet.getSheetByName(SHEET_COMENTARIOS);
   if (!sheet) {
@@ -39,16 +49,21 @@ const ensureCommentsSheet = (spreadsheet) => {
   return sheet;
 };
 
-const processExists = (spreadsheet, processId) => {
+const findProcessRow = (spreadsheet, processId) => {
   const sheet = spreadsheet.getSheetByName(SHEET_PROCESOS);
-  if (!sheet) return false;
+  if (!sheet) return null;
   const headerMap = getHeaderMap(sheet);
   const idColumn = headerMap[normalize(HEADER_ID)] || headerMap[normalize("ID Proceso")];
-  if (!idColumn) return false;
+  if (!idColumn) return null;
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return false;
+  if (lastRow < 2) return null;
   const ids = sheet.getRange(2, idColumn, lastRow - 1, 1).getValues().flat();
-  return ids.some((id) => String(id || "").trim() === processId);
+  const index = ids.findIndex((id) => String(id || "").trim() === processId);
+  return index === -1 ? null : { sheet, row: index + 2, idColumn };
+};
+
+const processExists = (spreadsheet, processId) => {
+  return Boolean(findProcessRow(spreadsheet, processId));
 };
 
 const findCommentRow = (sheet, processId, idColumn) => {
@@ -59,9 +74,36 @@ const findCommentRow = (sheet, processId, idColumn) => {
   return index === -1 ? -1 : index + 2;
 };
 
-function doPost(event) {
+const getStatusColumns = (sheet) => {
+  return {
+    done: findColumnByContains(sheet, HEADER_DONE),
+    inProcess: findColumnByContains(sheet, HEADER_IN_PROCESS),
+    validating: findColumnByContains(sheet, HEADER_VALIDATING),
+  };
+};
+
+const applyStatus = (sheet, row, status) => {
+  const columns = getStatusColumns(sheet);
+  if (!columns.done || !columns.inProcess || !columns.validating) {
+    throw new Error("No se encontraron columnas Ya migrado, En proceso y Validando");
+  }
+
+  sheet.getRange(row, columns.done).clearContent();
+  sheet.getRange(row, columns.inProcess).clearContent();
+  sheet.getRange(row, columns.validating).clearContent();
+
+  const normalizedStatus = normalize(status);
+  if (normalizedStatus === normalize("Ya se migro") || normalizedStatus === normalize("Ya se migró")) {
+    sheet.getRange(row, columns.done).setValue("ya");
+  } else if (normalizedStatus === normalize("En proceso")) {
+    sheet.getRange(row, columns.inProcess).setValue(1);
+  } else if (normalizedStatus === normalize("Validando")) {
+    sheet.getRange(row, columns.validating).setValue(1);
+  }
+};
+
+const saveComment = (spreadsheet, payload) => {
   try {
-    const payload = JSON.parse(event.postData.contents || "{}");
     const processId = String(payload.processId || "").trim();
     const comments = String(payload.comments || "");
     const userName = String(payload.userName || "local");
@@ -69,7 +111,6 @@ function doPost(event) {
 
     if (!processId) return jsonResponse({ ok: false, error: "ID_PROCESO requerido" });
 
-    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     if (!processExists(spreadsheet, processId)) {
       return jsonResponse({ ok: false, error: "ID_PROCESO no existe en Hoja 1" });
     }
@@ -92,6 +133,42 @@ function doPost(event) {
       ok: true,
       comment: { processId, comments, updatedAt, userName },
     });
+  } catch (error) {
+    return jsonResponse({ ok: false, error: error.message });
+  }
+};
+
+const saveStatus = (spreadsheet, payload) => {
+  try {
+    const processId = String(payload.processId || "").trim();
+    const status = String(payload.status || "Falta migrar");
+    const userName = String(payload.userName || "local");
+    const updatedAt = payload.updatedAt || new Date().toISOString();
+
+    if (!processId) return jsonResponse({ ok: false, error: "ID_PROCESO requerido" });
+
+    const match = findProcessRow(spreadsheet, processId);
+    if (!match) {
+      return jsonResponse({ ok: false, error: "ID_PROCESO no existe en Hoja 1" });
+    }
+
+    applyStatus(match.sheet, match.row, status);
+
+    return jsonResponse({
+      ok: true,
+      process: { processId, status, updatedAt, userName },
+    });
+  } catch (error) {
+    return jsonResponse({ ok: false, error: error.message });
+  }
+};
+
+function doPost(event) {
+  try {
+    const payload = JSON.parse(event.postData.contents || "{}");
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    if (payload.action === "status") return saveStatus(spreadsheet, payload);
+    return saveComment(spreadsheet, payload);
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
   }

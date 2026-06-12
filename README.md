@@ -32,9 +32,9 @@ La hoja `Comentarios` debe tener estas columnas:
 ID_PROCESO | Comentarios | Fecha | Usuario
 ```
 
-## Guardado de novedades
+## Guardado de novedades y estados
 
-GitHub Pages puede leer el XLSX publicado, pero no puede escribir directamente en Google Sheets. Para guardar novedades se usa Google Apps Script.
+GitHub Pages puede leer el XLSX publicado, pero no puede escribir directamente en Google Sheets. Para guardar novedades y cambios de estado se usa Google Apps Script.
 
 1. Crear un Apps Script asociado al Google Sheet.
 2. Copiar el contenido de `docs/google-apps-script-comentarios.js`.
@@ -46,6 +46,13 @@ export const GOOGLE_APPS_SCRIPT_URL = "URL_DEL_WEB_APP";
 ```
 
 El guardado reemplaza el comentario vigente por `ID_PROCESO`.
+
+Cuando se cambia el estado desde la tabla de procesos, el Apps Script limpia las columnas `Ya migrado`, `En proceso` y `Validando` del proceso correspondiente. Luego marca solo la columna del nuevo estado:
+
+- `Falta migrar`: deja las tres columnas vacias.
+- `Validando`: escribe `1` en `Validando`.
+- `En proceso`: escribe `1` en `En proceso`.
+- `Ya se migró`: escribe `ya` en `Ya migrado`.
 
 ## Desarrollo local opcional
 

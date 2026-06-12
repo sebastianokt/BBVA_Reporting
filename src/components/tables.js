@@ -29,7 +29,12 @@ export const renderTable = (processes) => {
           <td>
             <div class="tag-pill ${statusClass}">${escapeHtml(displayStatus(status))}</div>
             <div style="margin-top:6px">
-              <select class="status-select" data-key="${escapeHtml(process.key)}">
+              <select
+                class="status-select"
+                data-key="${escapeHtml(process.key)}"
+                data-process-id="${escapeHtml(process.processId || "")}"
+                ${process.processId ? "" : "disabled"}
+              >
                 <option value="${MIGRATION_STATUS.pending}" ${status === MIGRATION_STATUS.pending ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.pending)}</option>
                 <option value="${MIGRATION_STATUS.validating}" ${status === MIGRATION_STATUS.validating ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.validating)}</option>
                 <option value="${MIGRATION_STATUS.inProcess}" ${status === MIGRATION_STATUS.inProcess ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.inProcess)}</option>

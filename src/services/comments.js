@@ -23,6 +23,7 @@ export const saveProcessComment = async ({ processId, comments, userName }) => {
   if (!isConfigured()) throw new Error("Configura GOOGLE_APPS_SCRIPT_URL");
 
   const payload = {
+    action: "comment",
     processId: cleanProcessId,
     comments: String(comments ?? ""),
     userName: userName || "local",

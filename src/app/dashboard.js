@@ -5,12 +5,11 @@ import { renderDashboard, renderEmptyState } from "../components/ui-state.js";
 import { filterProcesses, filterScheduleEntries, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
 import { displayResponsible } from "../services/format.js";
 import { mergeProcessComments, saveProcessComment } from "../services/comments.js";
+import { saveProcessStatus } from "../services/process-status.js";
 import {
   appendHistoryEvent,
   loadHistoryEvents,
-  loadStatusMap,
   recordImportSnapshot,
-  saveStatusMap,
 } from "../services/storage.js";
 
 const statusEl = document.getElementById("load-status");
@@ -25,7 +24,6 @@ const typeFilter = document.getElementById("type-filter");
 const state = {
   allProcesses: [],
   scheduleEntries: [],
-  statusMap: loadStatusMap(),
   historyEvents: [],
   activeTeam: "ALL",
   activeModule: "overview",
@@ -67,13 +65,6 @@ const updateTypeOptions = (processes) => {
   typeFilter.value = currentValue !== "all" && !types.includes(currentValue) ? "all" : currentValue;
 };
 
-const applyStoredStatus = (processes) => {
-  processes.forEach((process) => {
-    const stored = state.statusMap[process.key];
-    if (stored) process.migrationStatus = stored;
-  });
-};
-
 const relinkScheduleEntries = (scheduleEntries, processes) => {
   const processesById = new Map(
     processes
@@ -103,6 +94,18 @@ const updateProcessCommentState = ({ processId, comments, updatedAt, userName })
     entry.linkedProcess.comments = comments;
     entry.linkedProcess.commentUpdatedAt = updatedAt;
     entry.linkedProcess.commentUserName = userName;
+  });
+};
+
+const updateProcessStatusState = ({ processId, status }) => {
+  const cleanProcessId = String(processId || "").trim();
+  state.allProcesses.forEach((process) => {
+    if (String(process.processId || "").trim() !== cleanProcessId) return;
+    process.migrationStatus = status || MIGRATION_STATUS.pending;
+  });
+  state.scheduleEntries.forEach((entry) => {
+    if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
+    entry.linkedProcess.migrationStatus = status || MIGRATION_STATUS.pending;
   });
 };
 
@@ -236,7 +239,6 @@ const handleResult = async (result, fileName = DEFAULT_FILE_NAME) => {
   state.allProcesses = mergeProcessComments(result.processes, result.commentsByProcessId || {});
   state.scheduleEntries = relinkScheduleEntries(result.scheduleEntries || [], state.allProcesses);
   state.sourceFileName = fileName;
-  applyStoredStatus(state.allProcesses);
   state.historyEvents = await loadHistoryEvents();
   updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
   updateWeekOptions(state.scheduleEntries);
@@ -287,28 +289,42 @@ document.getElementById("process-table-body")?.addEventListener("change", async 
   if (!target.classList.contains("status-select")) return;
 
   const key = target.dataset.key;
+  const processId = target.dataset.processId || "";
   const value = target.value;
-  const oldValue = state.statusMap[key] || "";
-  state.statusMap[key] = value;
-  saveStatusMap(state.statusMap);
-
   const match = state.allProcesses.find((process) => process.key === key);
-  if (match) {
-    const previous = match.migrationStatus || oldValue || MIGRATION_STATUS.pending;
-    match.migrationStatus = value || MIGRATION_STATUS.pending;
+  const previous = match?.migrationStatus || MIGRATION_STATUS.pending;
+  if (!match) return;
+
+  target.disabled = true;
+  setStatus("Guardando estado en Google Sheets...", "info");
+
+  try {
+    await saveProcessStatus({
+      processId,
+      status: value || MIGRATION_STATUS.pending,
+      userName: localStorage.getItem("dashboard-user") || "local",
+    });
+    updateProcessStatusState({ processId, status: value || MIGRATION_STATUS.pending });
     await appendHistoryEvent({
       entityType: "process",
       entityId: match.processId || match.key,
       eventType: "status_change",
       fieldName: "migrationStatus",
       oldValue: previous,
-      newValue: match.migrationStatus,
-      source: "dashboard",
+      newValue: value || MIGRATION_STATUS.pending,
+      source: "google-sheet",
       userName: localStorage.getItem("dashboard-user") || "local",
     });
     state.historyEvents = await loadHistoryEvents();
+    setStatus("Estado actualizado en Google Sheets.", "success");
+    applyFilters();
+  } catch (error) {
+    target.value = previous;
+    updateProcessStatusState({ processId, status: previous });
+    setStatus("No se pudo actualizar el estado en Google Sheets.", "error");
+  } finally {
+    target.disabled = false;
   }
-  applyFilters();
 });
 
 document.getElementById("process-table-body")?.addEventListener("click", async (event) => {
