@@ -2,7 +2,7 @@ import { LOCAL_EXCEL_FILE_NAME, MIGRATION_STATUS } from "../config/constants.js"
 import { DEFAULT_FILE_NAME, loadFromFile, loadFromUrl } from "../data/excel-loader.js";
 import { setActiveModule, setActiveTeam } from "../components/sidebar.js";
 import { renderDashboard, renderEmptyState } from "../components/ui-state.js";
-import { filterProcesses, filterScheduleEntries, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
+import { filterProcesses, filterScheduleEntries, getProcessResponsible, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
 import { displayResponsible } from "../services/format.js";
 import { mergeProcessComments, saveProcessComment } from "../services/comments.js";
 import { saveProcessStatus } from "../services/process-status.js";
@@ -167,7 +167,7 @@ const updateResponsableOptions = (processes) => {
   if (!responsableFilter) return;
   const preferredOrder = ["Jorge", "Johan", "Fredy"];
   const responsibles = Array.from(
-    new Set(processes.map((process) => process.assignedTo).filter(Boolean))
+    new Set(processes.map((process) => getProcessResponsible(process)).filter(Boolean))
   ).sort((a, b) => {
     const indexA = preferredOrder.indexOf(a);
     const indexB = preferredOrder.indexOf(b);

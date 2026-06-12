@@ -17,13 +17,31 @@ export const saveProcessStatus = async ({ processId, status, userName }) => {
     updatedAt: new Date().toISOString(),
   };
 
-  const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  try {
+    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) throw new Error(`Apps Script ${response.status}`);
-  const data = await response.json();
-  if (data?.ok === false) throw new Error(data.error || "No se pudo guardar el estado");
-  return data?.process || payload;
+    if (!response.ok) throw new Error(`Apps Script ${response.status}`);
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    if (data?.ok === false) {
+      const appError = new Error(data.error || "No se pudo guardar el estado");
+      appError.fromAppsScript = true;
+      throw appError;
+    }
+    return data?.process || payload;
+  } catch (error) {
+    if (error.fromAppsScript || String(error.message || "").startsWith("Apps Script")) throw error;
+    await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    return payload;
+  }
 };

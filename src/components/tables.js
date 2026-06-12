@@ -1,5 +1,6 @@
 import { MIGRATION_STATUS } from "../config/constants.js";
 import { displayResponsible, displayStatus, escapeHtml, formatNumber } from "../services/format.js";
+import { getProcessResponsible } from "../services/filters.js";
 
 export const renderTable = (processes) => {
   const tbody = document.getElementById("process-table-body");
@@ -25,7 +26,7 @@ export const renderTable = (processes) => {
           <td>${escapeHtml(process.phase || "-")}</td>
           <td><strong>${escapeHtml(process.name)}</strong></td>
           <td>${escapeHtml(process.area || "-")}</td>
-          <td>${escapeHtml(displayResponsible(process.assignedTo))}</td>
+          <td>${escapeHtml(displayResponsible(getProcessResponsible(process)))}</td>
           <td>
             <div class="tag-pill ${statusClass}">${escapeHtml(displayStatus(status))}</div>
             <div style="margin-top:6px">

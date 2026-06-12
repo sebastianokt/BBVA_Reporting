@@ -34,7 +34,11 @@ const writeJson = (key, value) => {
 
 const shouldUseApi = () => {
   if (typeof window === "undefined") return false;
-  return !window.location.hostname.endsWith("github.io");
+  if (window.location.hostname.endsWith("github.io")) return false;
+  if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+    return ["8000", "8010"].includes(window.location.port);
+  }
+  return false;
 };
 
 const apiRequest = async (path, options = {}) => {

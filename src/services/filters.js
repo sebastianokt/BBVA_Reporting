@@ -1,3 +1,7 @@
+export const getProcessResponsible = (process) => {
+  return process.personaCronograma || process.assignedTo || "";
+};
+
 export const getTeamFiltered = (processes, team) => {
   if (team === "ALL") return processes;
   return processes.filter((process) => (process.team || "R") === team);
@@ -13,7 +17,7 @@ export const filterProcesses = (processes, { query, responsable, statusValue, we
   const normalizedQuery = query.trim().toLowerCase();
 
   return processes.filter((process) => {
-    if (responsable !== "all" && process.assignedTo !== responsable) return false;
+    if (responsable !== "all" && getProcessResponsible(process) !== responsable) return false;
     if (statusValue !== "all" && process.migrationStatus !== statusValue) return false;
     if (typeValue !== "all" && (process.processType || process.team || "Sin tipo") !== typeValue) return false;
     if (weekValue !== "all") {
