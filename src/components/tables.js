@@ -1,23 +1,30 @@
-import { MIGRATION_STATUS } from "../config/constants.js";
+import { MIGRATION_STATUS, STATUS_LABELS } from "../config/constants.js";
 import { displayResponsible, displayStatus, escapeHtml, formatNumber } from "../services/format.js";
-import { getProcessResponsible } from "../services/filters.js";
+import { getProcessResponsible, getProcessStatus } from "../services/filters.js";
 
-export const renderTable = (processes) => {
+export const renderTable = (processes, options = {}) => {
   const tbody = document.getElementById("process-table-body");
   const countEl = document.getElementById("table-count");
   if (!tbody) return;
+  const statusLabels = options.statusLabels || STATUS_LABELS;
+  const statusMode = options.statusMode || "migration";
 
   tbody.innerHTML = processes
     .map((process, index) => {
-      const status = process.migrationStatus || MIGRATION_STATUS.pending;
+      const status = getProcessStatus(process, statusMode) || MIGRATION_STATUS.pending;
       const statusClass =
-        status === MIGRATION_STATUS.done
+        status === MIGRATION_STATUS.done || status === "Ya migrado"
           ? "tag-done"
-          : status === MIGRATION_STATUS.validating
+          : status === MIGRATION_STATUS.validating || status.includes("VoBo")
             ? "tag-validating"
-            : status === MIGRATION_STATUS.inProcess
+            : status === MIGRATION_STATUS.inProcess || status.includes("entregados")
               ? "tag-in-process"
               : "tag-pending";
+      const statusOptions = statusLabels
+        .map((label) => `
+          <option value="${escapeHtml(label)}" ${status === label ? "selected" : ""}>${escapeHtml(displayStatus(label))}</option>
+        `)
+        .join("");
 
       return `
         <tr>
@@ -36,10 +43,7 @@ export const renderTable = (processes) => {
                 data-process-id="${escapeHtml(process.processId || "")}"
                 ${process.processId ? "" : "disabled"}
               >
-                <option value="${MIGRATION_STATUS.pending}" ${status === MIGRATION_STATUS.pending ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.pending)}</option>
-                <option value="${MIGRATION_STATUS.validating}" ${status === MIGRATION_STATUS.validating ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.validating)}</option>
-                <option value="${MIGRATION_STATUS.inProcess}" ${status === MIGRATION_STATUS.inProcess ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.inProcess)}</option>
-                <option value="${MIGRATION_STATUS.done}" ${status === MIGRATION_STATUS.done ? "selected" : ""}>${displayStatus(MIGRATION_STATUS.done)}</option>
+                ${statusOptions}
               </select>
             </div>
           </td>

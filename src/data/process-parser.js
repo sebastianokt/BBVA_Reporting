@@ -303,6 +303,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
     person: findIndexByKey(headerMap, ["persona"]),
     client: findIndexByKey(headerMap, ["cliente"]),
     processName: findIndexByKey(headerMap, ["proceso"]),
+    status: findIndexByKey(headerMap, ["estado"]),
   };
 
   const warnings = [];
@@ -312,6 +313,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
     ["Persona", idx.person],
     ["Cliente", idx.client],
     ["Proceso", idx.processName],
+    ["Estado", idx.status],
   ].forEach(([name, index]) => {
     if (index === -1) warnings.push(`No se encontro columna ${name} en Fredy.`);
   });
@@ -327,6 +329,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
       const linkedProcess = processById.get(processId) || null;
       if (processId && !linkedProcess) unmatchedIds.add(processId);
       const monthData = parseMonthValue(getCell(row, idx.month));
+      const status = String(getCell(row, idx.status) || "").trim();
 
       return {
         id: `fredy-${processId || "sin-id"}-${index + 1}`,
@@ -338,6 +341,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
         person: String(getCell(row, idx.person) || "").trim(),
         client: String(getCell(row, idx.client) || "").trim(),
         processName: String(getCell(row, idx.processName) || linkedProcess?.name || "Proceso").trim(),
+        status,
         part: "",
         hours: 0,
         linkedProcess,
@@ -362,6 +366,9 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
     }
     if (!entry.linkedProcess.personaCronograma && entry.person) {
       entry.linkedProcess.personaCronograma = entry.person;
+    }
+    if (entry.status) {
+      entry.linkedProcess.fredyStatus = entry.status;
     }
   });
 

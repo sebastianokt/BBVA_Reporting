@@ -1,9 +1,9 @@
-import { LOCAL_EXCEL_FILE_NAME, MIGRATION_STATUS } from "../config/constants.js";
+import { FREDY_STATUS, FREDY_STATUS_LABELS, LOCAL_EXCEL_FILE_NAME, MIGRATION_STATUS, STATUS_LABELS } from "../config/constants.js";
 import { DEFAULT_FILE_NAME, loadFromFile, loadFromUrl } from "../data/excel-loader.js";
 import { setActiveModule, setActiveTeam } from "../components/sidebar.js";
 import { renderDashboard, renderEmptyState } from "../components/ui-state.js";
-import { filterProcesses, filterScheduleEntries, getProcessResponsible, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
-import { displayResponsible } from "../services/format.js";
+import { filterProcesses, filterScheduleEntries, getProcessResponsible, getProcessStatus, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
+import { displayResponsible, displayStatus } from "../services/format.js";
 import { mergeProcessComments, saveProcessComment } from "../services/comments.js";
 import { saveProcessStatus } from "../services/process-status.js";
 import {
@@ -92,6 +92,20 @@ const updateTypeOptions = (processes) => {
   typeFilter.value = currentValue !== "all" && !types.includes(currentValue) ? "all" : currentValue;
 };
 
+const updateStatusOptions = () => {
+  if (!statusFilter) return;
+  const currentValue = statusFilter.value || "all";
+  const labels = state.activeTeam === "F" ? FREDY_STATUS_LABELS : STATUS_LABELS;
+  statusFilter.innerHTML = '<option value="all">Todos los estados</option>';
+  labels.forEach((label) => {
+    const option = document.createElement("option");
+    option.value = label;
+    option.textContent = displayStatus(label);
+    statusFilter.appendChild(option);
+  });
+  statusFilter.value = currentValue !== "all" && !labels.includes(currentValue) ? "all" : currentValue;
+};
+
 const relinkScheduleEntries = (scheduleEntries, processes) => {
   const processesById = new Map(
     processes
@@ -132,9 +146,14 @@ const updateProcessCommentState = ({ processId, comments, updatedAt, userName })
 
 const updateProcessStatusState = ({ processId, status }) => {
   const cleanProcessId = String(processId || "").trim();
+  const isFredy = state.activeTeam === "F";
   state.allProcesses.forEach((process) => {
     if (String(process.processId || "").trim() !== cleanProcessId) return;
-    process.migrationStatus = status || MIGRATION_STATUS.pending;
+    if (isFredy) {
+      process.fredyStatus = status || FREDY_STATUS.missingInputs;
+    } else {
+      process.migrationStatus = status || MIGRATION_STATUS.pending;
+    }
   });
   state.scheduleEntries.forEach((entry) => {
     if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
@@ -142,7 +161,8 @@ const updateProcessStatusState = ({ processId, status }) => {
   });
   state.fredyEntries.forEach((entry) => {
     if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
-    entry.linkedProcess.migrationStatus = status || MIGRATION_STATUS.pending;
+    entry.status = status || FREDY_STATUS.missingInputs;
+    entry.linkedProcess.fredyStatus = status || FREDY_STATUS.missingInputs;
   });
 };
 
@@ -246,6 +266,7 @@ const applyFilters = () => {
     weekValue: weekFilter?.value || "all",
     typeValue: typeFilter?.value || "all",
     temporalMode: state.activeTeam === "F" ? "month" : "week",
+    statusMode: state.activeTeam === "F" ? "fredy" : "migration",
   });
   const visibleProcessIds = new Set(
     getScheduleProcesses(filtered, state.activeTeam)
@@ -264,6 +285,8 @@ const applyFilters = () => {
     activeTeam: state.activeTeam,
     scheduleEntries: filteredScheduleEntries,
     scheduleMode: state.activeTeam === "F" ? "month" : "week",
+    statusMode: state.activeTeam === "F" ? "fredy" : "migration",
+    statusLabels: state.activeTeam === "F" ? FREDY_STATUS_LABELS : STATUS_LABELS,
     historyEvents: state.historyEvents,
   });
 };
@@ -282,6 +305,7 @@ const handleResult = async (result, fileName = DEFAULT_FILE_NAME) => {
   state.historyEvents = await loadHistoryEvents();
   updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
   updateWeekOptions(state.activeTeam === "F" ? state.fredyEntries : state.scheduleEntries);
+  updateStatusOptions();
   updateTypeOptions(state.allProcesses);
   await recordImportSnapshot({
     fileName,
@@ -332,7 +356,7 @@ document.getElementById("process-table-body")?.addEventListener("change", async 
   const processId = target.dataset.processId || "";
   const value = target.value;
   const match = state.allProcesses.find((process) => process.key === key);
-  const previous = match?.migrationStatus || MIGRATION_STATUS.pending;
+  const previous = getProcessStatus(match || {}, state.activeTeam === "F" ? "fredy" : "migration") || MIGRATION_STATUS.pending;
   if (!match) return;
 
   target.disabled = true;
@@ -341,17 +365,18 @@ document.getElementById("process-table-body")?.addEventListener("change", async 
   try {
     await saveProcessStatus({
       processId,
-      status: value || MIGRATION_STATUS.pending,
+      status: value || (state.activeTeam === "F" ? FREDY_STATUS.missingInputs : MIGRATION_STATUS.pending),
+      statusScope: state.activeTeam === "F" ? "fredy" : "migration",
       userName: localStorage.getItem("dashboard-user") || "local",
     });
-    updateProcessStatusState({ processId, status: value || MIGRATION_STATUS.pending });
+    updateProcessStatusState({ processId, status: value || (state.activeTeam === "F" ? FREDY_STATUS.missingInputs : MIGRATION_STATUS.pending) });
     await appendHistoryEvent({
       entityType: "process",
       entityId: match.processId || match.key,
       eventType: "status_change",
-      fieldName: "migrationStatus",
+      fieldName: state.activeTeam === "F" ? "fredyStatus" : "migrationStatus",
       oldValue: previous,
-      newValue: value || MIGRATION_STATUS.pending,
+      newValue: value || (state.activeTeam === "F" ? FREDY_STATUS.missingInputs : MIGRATION_STATUS.pending),
       source: "google-sheet",
       userName: localStorage.getItem("dashboard-user") || "local",
     });
@@ -409,6 +434,7 @@ document.querySelectorAll("[data-team]").forEach((link) => {
     setActiveTeam(link.dataset.team, state, () => {
       updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
       updateWeekOptions(state.activeTeam === "F" ? state.fredyEntries : state.scheduleEntries);
+      updateStatusOptions();
       applyFilters();
     });
   });
@@ -418,5 +444,6 @@ setActiveModule("overview", state);
 setActiveTeam("ALL", state, () => {
   updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
   updateWeekOptions(state.scheduleEntries);
+  updateStatusOptions();
 });
 tryAutoLoad();

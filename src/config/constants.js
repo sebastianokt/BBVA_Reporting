@@ -15,11 +15,33 @@ export const MIGRATION_STATUS = {
   done: "Ya se migro",
 };
 
+export const FREDY_STATUS = {
+  missingInputs: "Falta insumos",
+  inputsDelivered: "Insumos entregados",
+  inputComments: "Comentarios insumos",
+  missingInputApproval: "Falta VoBo de insumos",
+  inputApproved: "VoBo de insumos",
+  missingProcessApproval: "Falta VoBo de procesos",
+  processApproved: "VoBo de proceso",
+  done: "Ya migrado",
+};
+
 export const STATUS_LABELS = [
   MIGRATION_STATUS.done,
   MIGRATION_STATUS.validating,
   MIGRATION_STATUS.inProcess,
   MIGRATION_STATUS.pending,
+];
+
+export const FREDY_STATUS_LABELS = [
+  FREDY_STATUS.missingInputs,
+  FREDY_STATUS.inputsDelivered,
+  FREDY_STATUS.inputComments,
+  FREDY_STATUS.missingInputApproval,
+  FREDY_STATUS.inputApproved,
+  FREDY_STATUS.missingProcessApproval,
+  FREDY_STATUS.processApproved,
+  FREDY_STATUS.done,
 ];
 
 export const RESPONSIBLE_ORDER = ["Jorge", "Johan", "Fredy"];

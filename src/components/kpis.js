@@ -1,4 +1,4 @@
-import { MIGRATION_STATUS } from "../config/constants.js";
+import { FREDY_STATUS, MIGRATION_STATUS } from "../config/constants.js";
 import { formatNumber } from "../services/format.js";
 
 export const updateStats = (metrics) => {
@@ -25,8 +25,11 @@ const getTypeStats = (metrics, type) => {
     validating: statusCounts[MIGRATION_STATUS.validating] || 0,
     inProcess: statusCounts[MIGRATION_STATUS.inProcess] || 0,
     pending: statusCounts[MIGRATION_STATUS.pending] || 0,
+    statusCounts,
   };
 };
+
+const countStatus = (stats, status) => stats.statusCounts?.[status] || 0;
 
 const setText = (id, value) => {
   const element = document.getElementById(id);
@@ -50,12 +53,17 @@ export const updateKpis = (metrics, options = {}) => {
 
   setGroupVisibility(activeTeam);
 
-  setText("kpi-f-migrated", fredyStats.done);
-  setText("kpi-f-validating", fredyStats.validating);
-  setText("kpi-f-in-process", fredyStats.inProcess);
-  setText("kpi-f-pending", fredyStats.pending);
-  setText("kpi-type-f", `${fredyStats.done} de ${fredyStats.total}`);
-  setText("kpi-type-f-note", `Procesos F: llevan ${fredyStats.done}, son ${fredyStats.total}`);
+  const fredyDone = countStatus(fredyStats, FREDY_STATUS.done);
+  setText("kpi-f-pending", countStatus(fredyStats, FREDY_STATUS.missingInputs));
+  setText("kpi-f-in-process", countStatus(fredyStats, FREDY_STATUS.inputsDelivered));
+  setText("kpi-f-validating", countStatus(fredyStats, FREDY_STATUS.inputComments));
+  setText("kpi-f-missing-input-approval", countStatus(fredyStats, FREDY_STATUS.missingInputApproval));
+  setText("kpi-f-input-approved", countStatus(fredyStats, FREDY_STATUS.inputApproved));
+  setText("kpi-f-missing-process-approval", countStatus(fredyStats, FREDY_STATUS.missingProcessApproval));
+  setText("kpi-f-process-approved", countStatus(fredyStats, FREDY_STATUS.processApproved));
+  setText("kpi-f-migrated", fredyDone);
+  setText("kpi-type-f", `${fredyDone} de ${fredyStats.total}`);
+  setText("kpi-type-f-note", `Procesos Fredy: llevan ${fredyDone}, son ${fredyStats.total}`);
 
   setText("kpi-r-migrated", recoveriesStats.done);
   setText("kpi-r-validating", recoveriesStats.validating);

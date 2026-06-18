@@ -1,4 +1,5 @@
 import { MIGRATION_STATUS, RESPONSIBLE_ORDER } from "../config/constants.js";
+import { getProcessStatus } from "./filters.js";
 
 const sumBy = (items, selector) =>
   items.reduce((total, item) => total + selector(item), 0);
@@ -19,7 +20,8 @@ export const buildResponsibles = (processes) => {
   });
 };
 
-export const computeMetrics = (processes) => {
+export const computeMetrics = (processes, options = {}) => {
+  const statusMode = options.statusMode || "migration";
   const total = processes.length;
   const totalHours = sumBy(processes, (process) => process.hours);
   const avgHours = total ? totalHours / total : 0;
@@ -45,7 +47,7 @@ export const computeMetrics = (processes) => {
     if (!countsByResponsible[process.assignedTo]) countsByResponsible[process.assignedTo] = 0;
     hoursByResponsible[process.assignedTo] += process.hours;
     countsByResponsible[process.assignedTo] += 1;
-    const status = process.migrationStatus || MIGRATION_STATUS.pending;
+    const status = getProcessStatus(process, statusMode) || MIGRATION_STATUS.pending;
     statusCounts[status] = (statusCounts[status] || 0) + 1;
     const type = process.processType || process.team || "Sin tipo";
     typeCounts[type] = (typeCounts[type] || 0) + 1;

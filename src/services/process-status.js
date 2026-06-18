@@ -4,7 +4,7 @@ const isConfigured = () => {
   return GOOGLE_APPS_SCRIPT_URL && GOOGLE_APPS_SCRIPT_URL !== "URL_DEL_WEB_APP";
 };
 
-export const saveProcessStatus = async ({ processId, status, userName }) => {
+export const saveProcessStatus = async ({ processId, status, statusScope = "migration", userName }) => {
   const cleanProcessId = String(processId || "").trim();
   if (!cleanProcessId) throw new Error("ID_PROCESO requerido");
   if (!isConfigured()) throw new Error("Configura GOOGLE_APPS_SCRIPT_URL");
@@ -13,6 +13,7 @@ export const saveProcessStatus = async ({ processId, status, userName }) => {
     action: "status",
     processId: cleanProcessId,
     status,
+    statusScope,
     userName: userName || "local",
     updatedAt: new Date().toISOString(),
   };

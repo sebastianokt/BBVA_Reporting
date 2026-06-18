@@ -1,5 +1,6 @@
 import { MIGRATION_STATUS } from "../config/constants.js";
 import { displayResponsible, displayStatus, escapeHtml, formatNumber } from "../services/format.js";
+import { getProcessStatus } from "../services/filters.js";
 
 const getDisplayName = (entry) => {
   const value = entry.person || "Sin responsable";
@@ -75,15 +76,17 @@ const groupMonthlySchedule = (entries) => {
 };
 
 const getStatusClass = (status) => {
-  if (status === MIGRATION_STATUS.done) return "tag-done";
-  if (status === MIGRATION_STATUS.validating) return "tag-validating";
-  if (status === MIGRATION_STATUS.inProcess) return "tag-in-process";
+  if (status === MIGRATION_STATUS.done || status === "Ya migrado") return "tag-done";
+  if (status === MIGRATION_STATUS.validating || status.includes("VoBo")) return "tag-validating";
+  if (status === MIGRATION_STATUS.inProcess || status.includes("entregados")) return "tag-in-process";
   return "tag-pending";
 };
 
 const buildItemLabel = (entry, options = {}) => {
   const title = entry.processName || entry.linkedProcess?.name || "Proceso";
-  const status = entry.linkedProcess?.migrationStatus || MIGRATION_STATUS.pending;
+  const status = entry.linkedProcess
+    ? getProcessStatus(entry.linkedProcess, options.mode === "month" ? "fredy" : "migration")
+    : (entry.status || MIGRATION_STATUS.pending);
   const processId = String(entry.processId || entry.linkedProcess?.processId || "").trim();
   const comments = entry.linkedProcess?.comments || "";
   const details = [entry.part, entry.client]

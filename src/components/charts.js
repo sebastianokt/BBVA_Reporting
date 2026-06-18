@@ -18,11 +18,11 @@ export const renderEmptyChart = (id, message) => {
   container.innerHTML = `<div class="chart-empty">${escapeHtml(message)}</div>`;
 };
 
-export const renderStatusChart = (statusCounts) => {
+export const renderStatusChart = (statusCounts, statusLabels = STATUS_LABELS) => {
   const containerId = "#chart-status";
   clearChart(containerId);
 
-  const labels = STATUS_LABELS.filter((label) => statusCounts[label] !== undefined);
+  const labels = statusLabels.filter((label) => statusCounts[label] !== undefined);
   const series = labels.map((label) => statusCounts[label] || 0);
 
   if (!series.length || series.every((value) => value === 0)) {
@@ -34,7 +34,7 @@ export const renderStatusChart = (statusCounts) => {
     chart: { type: "donut", height: 260, fontFamily: "Plus Jakarta Sans, sans-serif" },
     labels: labels.map(displayStatus),
     series,
-    colors: ["#00a878", "#3b82f6", "#0ea5e9", "#f59e0b"],
+    colors: ["#00a878", "#3b82f6", "#0ea5e9", "#f59e0b", "#8b5cf6", "#14b8a6", "#64748b", "#ef4444"],
     legend: { position: "bottom", markers: { radius: 12 } },
     dataLabels: { enabled: true },
     stroke: { colors: ["#ffffff"], width: 2 },

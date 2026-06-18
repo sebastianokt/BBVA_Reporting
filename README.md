@@ -30,7 +30,7 @@ El Google Sheet debe mantener estas hojas:
 La hoja `Fredy` debe tener estas columnas:
 
 ```text
-ID_PROCESO | Mes | Persona | Cliente | Proceso
+ID_PROCESO | Mes | Persona | Cliente | Proceso | Estado
 ```
 
 La hoja `Comentarios` debe tener estas columnas:
@@ -54,12 +54,23 @@ export const GOOGLE_APPS_SCRIPT_URL = "URL_DEL_WEB_APP";
 
 El guardado reemplaza el comentario vigente por `ID_PROCESO`.
 
-Cuando se cambia el estado desde la tabla de procesos, el Apps Script limpia las columnas `Ya migrado`, `En proceso` y `Validando` del proceso correspondiente. Luego marca solo la columna del nuevo estado:
+Cuando se cambia el estado desde la tabla de procesos en Recoveries, el Apps Script limpia las columnas `Ya migrado`, `En proceso` y `Validando` del proceso correspondiente. Luego marca solo la columna del nuevo estado:
 
 - `Falta migrar`: deja las tres columnas vacias.
 - `Validando`: escribe `1` en `Validando`.
 - `En proceso`: escribe `1` en `En proceso`.
 - `Ya se migró`: escribe `ya` en `Ya migrado`.
+
+Cuando se cambia el estado en Migracion Fredy, el Apps Script actualiza la columna `Estado` de la hoja `Fredy`. Los estados validos para esa vista son:
+
+- `Falta insumos`
+- `Insumos entregados`
+- `Comentarios insumos`
+- `Falta VoBo de insumos`
+- `VoBo de insumos`
+- `Falta VoBo de procesos`
+- `VoBo de proceso`
+- `Ya migrado`
 
 ## Desarrollo local opcional
 

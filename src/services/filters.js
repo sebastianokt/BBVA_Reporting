@@ -1,5 +1,12 @@
+import { FREDY_STATUS } from "../config/constants.js";
+
 export const getProcessResponsible = (process) => {
   return process.personaCronograma || process.assignedTo || "";
+};
+
+export const getProcessStatus = (process, statusMode = "migration") => {
+  if (statusMode === "fredy") return process.fredyStatus || FREDY_STATUS.missingInputs;
+  return process.migrationStatus;
 };
 
 export const getTeamFiltered = (processes, team) => {
@@ -13,12 +20,12 @@ export const getScheduleProcesses = (processes, team) => {
   return processes.filter((process) => (process.team || "R") !== "F");
 };
 
-export const filterProcesses = (processes, { query, responsable, statusValue, weekValue = "all", typeValue = "all", temporalMode = "week" }) => {
+export const filterProcesses = (processes, { query, responsable, statusValue, weekValue = "all", typeValue = "all", temporalMode = "week", statusMode = "migration" }) => {
   const normalizedQuery = query.trim().toLowerCase();
 
   return processes.filter((process) => {
     if (responsable !== "all" && getProcessResponsible(process) !== responsable) return false;
-    if (statusValue !== "all" && process.migrationStatus !== statusValue) return false;
+    if (statusValue !== "all" && getProcessStatus(process, statusMode) !== statusValue) return false;
     if (typeValue !== "all" && (process.processType || process.team || "Sin tipo") !== typeValue) return false;
     if (weekValue !== "all") {
       if (temporalMode === "month") {

@@ -1,9 +1,11 @@
 const SHEET_PROCESOS = "Hoja 1";
 const SHEET_COMENTARIOS = "Comentarios";
+const SHEET_FREDY = "Fredy";
 const HEADER_ID = "ID_PROCESO";
 const HEADER_COMMENTS = "Comentarios";
 const HEADER_DATE = "Fecha";
 const HEADER_USER = "Usuario";
+const HEADER_STATUS = "Estado";
 const HEADER_DONE = "Ya migrado";
 const HEADER_IN_PROCESS = "En proceso";
 const HEADER_VALIDATING = "Validando";
@@ -60,6 +62,19 @@ const findProcessRow = (spreadsheet, processId) => {
   const ids = sheet.getRange(2, idColumn, lastRow - 1, 1).getValues().flat();
   const index = ids.findIndex((id) => String(id || "").trim() === processId);
   return index === -1 ? null : { sheet, row: index + 2, idColumn };
+};
+
+const findRowById = (spreadsheet, sheetName, processId) => {
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) return null;
+  const headerMap = getHeaderMap(sheet);
+  const idColumn = headerMap[normalize(HEADER_ID)] || headerMap[normalize("ID Proceso")];
+  if (!idColumn) return null;
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+  const ids = sheet.getRange(2, idColumn, lastRow - 1, 1).getValues().flat();
+  const index = ids.findIndex((id) => String(id || "").trim() === processId);
+  return index === -1 ? null : { sheet, row: index + 2, idColumn, headerMap };
 };
 
 const processExists = (spreadsheet, processId) => {
@@ -142,10 +157,27 @@ const saveStatus = (spreadsheet, payload) => {
   try {
     const processId = String(payload.processId || "").trim();
     const status = String(payload.status || "Falta migrar");
+    const statusScope = String(payload.statusScope || "migration");
     const userName = String(payload.userName || "local");
     const updatedAt = payload.updatedAt || new Date().toISOString();
 
     if (!processId) return jsonResponse({ ok: false, error: "ID_PROCESO requerido" });
+
+    if (statusScope === "fredy") {
+      const match = findRowById(spreadsheet, SHEET_FREDY, processId);
+      if (!match) {
+        return jsonResponse({ ok: false, error: "ID_PROCESO no existe en Fredy" });
+      }
+      const statusColumn = match.headerMap[normalize(HEADER_STATUS)];
+      if (!statusColumn) {
+        return jsonResponse({ ok: false, error: "No se encontro columna Estado en Fredy" });
+      }
+      match.sheet.getRange(match.row, statusColumn).setValue(status);
+      return jsonResponse({
+        ok: true,
+        process: { processId, status, statusScope, updatedAt, userName },
+      });
+    }
 
     const match = findProcessRow(spreadsheet, processId);
     if (!match) {

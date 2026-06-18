@@ -55,7 +55,7 @@ export const renderEmptyState = (message, options = {}) => {
   renderEmptyChart("#chart-acumulado", message);
   renderEmptyChart("#chart-jorge-weekly", message);
   renderEmptyChart("#chart-Johan-weekly", message);
-  renderTable([]);
+  renderTable([], options);
   renderDistributionTable([]);
   renderTypeBreakdownTable({});
   renderHistoryTable([]);
@@ -68,11 +68,13 @@ export const renderDashboard = (processes, options = {}) => {
     return;
   }
 
-  const metrics = computeMetrics(processes);
+  const statusMode = options.statusMode || "migration";
+  const statusLabels = options.statusLabels;
+  const metrics = computeMetrics(processes, { statusMode });
   updateStats(metrics);
   updateKpis(metrics, { activeTeam: options.activeTeam || "ALL" });
   updateTeamCards(metrics, { activeTeam: options.activeTeam || "ALL" });
-  renderStatusChart(metrics.statusCounts);
+  renderStatusChart(metrics.statusCounts, statusLabels);
   renderResponsibleChart(metrics.hoursByResponsible, metrics.responsibles);
   renderLineChart(buildLineSeries(processes, metrics.responsibles));
   renderTypeBreakdownTable(metrics.breakdownByType);
@@ -83,7 +85,10 @@ export const renderDashboard = (processes, options = {}) => {
 
   renderWeeklySchedule(options.scheduleEntries || [], { mode: options.scheduleMode || "week" });
 
-  renderTable(processes);
+  renderTable(processes, {
+    statusMode: options.statusMode || "migration",
+    statusLabels: options.statusLabels,
+  });
   renderDistributionTable(processes);
   renderHistoryTable(options.historyEvents || []);
 };
