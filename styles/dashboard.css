@@ -200,6 +200,31 @@
   padding: 0.22rem 0.5rem;
 }
 
+.schedule-date-inline {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  margin-top: 0.28rem;
+}
+
+.schedule-date-inline span:first-child {
+  color: #6b7a99;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.schedule-date-inline .schedule-fredy-date-input {
+  height: 28px;
+  max-width: 142px;
+}
+
+.schedule-date-inline .btn {
+  line-height: 1;
+  padding: 0.24rem 0.45rem;
+}
+
 .schedule-empty {
   color: #6b7a99;
   font-size: 0.78rem;

@@ -1,4 +1,4 @@
-import { MIGRATION_STATUS } from "../config/constants.js";
+import { FREDY_RECOVERIES_STATUS_LABELS, MIGRATION_STATUS } from "../config/constants.js";
 import { displayResponsible, displayStatus, escapeHtml, formatNumber } from "../services/format.js";
 import { getProcessStatus } from "../services/filters.js";
 
@@ -75,7 +75,10 @@ const groupMonthlySchedule = (entries) => {
   });
 };
 
-const getStatusClass = (status) => {
+const getStatusClass = (status, mode = "week") => {
+  if (mode === "month") {
+    return FREDY_RECOVERIES_STATUS_LABELS.includes(status) ? "tag-fredy-recoveries" : "tag-fredy-owner";
+  }
   if (status === MIGRATION_STATUS.done || status === "Ya migrado") return "tag-done";
   if (status === MIGRATION_STATUS.validating || status.includes("VoBo")) return "tag-validating";
   if (status === MIGRATION_STATUS.inProcess || status.includes("entregados")) return "tag-in-process";
@@ -89,6 +92,7 @@ const buildItemLabel = (entry, options = {}) => {
     : (entry.status || MIGRATION_STATUS.pending);
   const processId = String(entry.processId || entry.linkedProcess?.processId || "").trim();
   const comments = entry.linkedProcess?.comments || "";
+  const statusDate = entry.linkedProcess?.fredyStatusDate || entry.statusDate || "";
   const details = [entry.part, entry.client]
     .filter(Boolean)
     .map((value) => escapeHtml(value))
@@ -97,6 +101,29 @@ const buildItemLabel = (entry, options = {}) => {
     processId ? `ID ${escapeHtml(processId)}` : "Sin ID_PROCESO",
     details,
   ].filter(Boolean).join(" · ");
+  const dateControl = options.mode === "month"
+    ? `
+      <div class="schedule-date-inline">
+        <span>Fecha pedida de insumos</span>
+        <input
+          class="schedule-fredy-date-input"
+          data-process-id="${escapeHtml(processId)}"
+          type="date"
+          value="${escapeHtml(statusDate)}"
+          ${processId ? "" : "disabled"}
+        />
+        <button
+          class="btn btn-outline-primary btn-sm schedule-fredy-date-save-button"
+          type="button"
+          data-process-id="${escapeHtml(processId)}"
+          ${processId ? "" : "disabled"}
+        >
+          Guardar
+        </button>
+        <span class="comment-feedback text-muted"></span>
+      </div>
+    `
+    : "";
 
   return `
     <div class="schedule-item">
@@ -104,9 +131,10 @@ const buildItemLabel = (entry, options = {}) => {
         <div>
           <div class="schedule-item-title">${escapeHtml(title)}</div>
           <div class="schedule-item-meta">${meta}</div>
+          ${dateControl}
         </div>
         <div class="schedule-item-badges">
-          <span class="tag-pill ${getStatusClass(status)}">${escapeHtml(displayStatus(status))}</span>
+          <span class="tag-pill ${getStatusClass(status, options.mode)}">${escapeHtml(displayStatus(status))}</span>
           <span class="schedule-hours">${options.mode === "month" ? "1 parte" : `${formatNumber(entry.hours || 0, 1)}h`}</span>
         </div>
       </div>

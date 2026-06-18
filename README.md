@@ -30,7 +30,7 @@ El Google Sheet debe mantener estas hojas:
 La hoja `Fredy` debe tener estas columnas:
 
 ```text
-ID_PROCESO | Mes | Persona | Cliente | Proceso | Estado
+ID_PROCESO | Mes | Persona | Cliente | Proceso | Estado | Fecha_estado
 ```
 
 La hoja `Comentarios` debe tener estas columnas:
@@ -68,12 +68,14 @@ Cuando se cambia el estado en Migracion Fredy, el Apps Script actualiza la colum
 - `Insumos entregados`
 - `Comentarios insumos`
 - `Falta VoBo de insumos`
-- `VoBo de insumos`
-- `Falta VoBo de procesos`
-- `VoBo de proceso`
+- `Falta VoBo migración`
+- `Migrando`
 - `Ya migrado`
 
 Si `Estado` viene vacio en la hoja `Fredy`, el dashboard lo muestra como `No ha iniciado la migracion`.
+`Fecha_estado` es una fecha manual editable desde `Procesos` y `Cronograma` en Migracion Fredy. En la interfaz se muestra como `Fecha pedida de insumos`.
+
+En Migracion Fredy, los estados `Falta insumos`, `Comentarios insumos`, `Falta VoBo de insumos` y `Falta VoBo migración` se muestran como gestion Recoveries. Los demas estados se muestran como gestion Fredy/migracion.
 
 ## Desarrollo local opcional
 

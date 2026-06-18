@@ -60,9 +60,8 @@ export const updateKpis = (metrics, options = {}) => {
   setText("kpi-f-in-process", countStatus(fredyStats, FREDY_STATUS.inputsDelivered));
   setText("kpi-f-validating", countStatus(fredyStats, FREDY_STATUS.inputComments));
   setText("kpi-f-missing-input-approval", countStatus(fredyStats, FREDY_STATUS.missingInputApproval));
-  setText("kpi-f-input-approved", countStatus(fredyStats, FREDY_STATUS.inputApproved));
+  setText("kpi-f-input-approved", countStatus(fredyStats, FREDY_STATUS.migrating));
   setText("kpi-f-missing-process-approval", countStatus(fredyStats, FREDY_STATUS.missingProcessApproval));
-  setText("kpi-f-process-approved", countStatus(fredyStats, FREDY_STATUS.processApproved));
   setText("kpi-f-migrated", fredyDone);
   setText("kpi-type-f", `${fredyDone} de ${fredyStats.total}`);
   setText("kpi-type-f-note", `Procesos Fredy: llevan ${fredyDone}, son ${fredyStats.total}`);

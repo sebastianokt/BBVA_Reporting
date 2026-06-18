@@ -21,10 +21,14 @@ export const FREDY_STATUS = {
   inputsDelivered: "Insumos entregados",
   inputComments: "Comentarios insumos",
   missingInputApproval: "Falta VoBo de insumos",
-  inputApproved: "VoBo de insumos",
-  missingProcessApproval: "Falta VoBo de procesos",
-  processApproved: "VoBo de proceso",
+  missingProcessApproval: "Falta VoBo migración",
+  migrating: "Migrando",
   done: "Ya migrado",
+};
+
+export const FREDY_RESPONSIBILITY = {
+  recoveries: "recoveries",
+  fredy: "fredy",
 };
 
 export const STATUS_LABELS = [
@@ -40,9 +44,22 @@ export const FREDY_STATUS_LABELS = [
   FREDY_STATUS.inputsDelivered,
   FREDY_STATUS.inputComments,
   FREDY_STATUS.missingInputApproval,
-  FREDY_STATUS.inputApproved,
   FREDY_STATUS.missingProcessApproval,
-  FREDY_STATUS.processApproved,
+  FREDY_STATUS.migrating,
+  FREDY_STATUS.done,
+];
+
+export const FREDY_RECOVERIES_STATUS_LABELS = [
+  FREDY_STATUS.missingInputs,
+  FREDY_STATUS.inputComments,
+  FREDY_STATUS.missingInputApproval,
+  FREDY_STATUS.missingProcessApproval,
+];
+
+export const FREDY_OWNER_STATUS_LABELS = [
+  FREDY_STATUS.notStarted,
+  FREDY_STATUS.inputsDelivered,
+  FREDY_STATUS.migrating,
   FREDY_STATUS.done,
 ];
 

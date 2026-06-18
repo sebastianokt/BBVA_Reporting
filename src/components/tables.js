@@ -1,6 +1,16 @@
-import { MIGRATION_STATUS, STATUS_LABELS } from "../config/constants.js";
+import { FREDY_RECOVERIES_STATUS_LABELS, MIGRATION_STATUS, STATUS_LABELS } from "../config/constants.js";
 import { displayResponsible, displayStatus, escapeHtml, formatNumber } from "../services/format.js";
 import { getProcessResponsible, getProcessStatus } from "../services/filters.js";
+
+const getStatusClass = (status, statusMode = "migration") => {
+  if (statusMode === "fredy") {
+    return FREDY_RECOVERIES_STATUS_LABELS.includes(status) ? "tag-fredy-recoveries" : "tag-fredy-owner";
+  }
+  if (status === MIGRATION_STATUS.done || status === "Ya migrado") return "tag-done";
+  if (status === MIGRATION_STATUS.validating || status.includes("VoBo")) return "tag-validating";
+  if (status === MIGRATION_STATUS.inProcess || status.includes("entregados")) return "tag-in-process";
+  return "tag-pending";
+};
 
 export const renderTable = (processes, options = {}) => {
   const tbody = document.getElementById("process-table-body");
@@ -10,27 +20,43 @@ export const renderTable = (processes, options = {}) => {
   const statusMode = options.statusMode || "migration";
 
   tbody.innerHTML = processes
-    .map((process, index) => {
+    .map((process) => {
       const status = getProcessStatus(process, statusMode) || MIGRATION_STATUS.pending;
-      const statusClass =
-        status === MIGRATION_STATUS.done || status === "Ya migrado"
-          ? "tag-done"
-          : status === MIGRATION_STATUS.validating || status.includes("VoBo")
-            ? "tag-validating"
-            : status === MIGRATION_STATUS.inProcess || status.includes("entregados")
-              ? "tag-in-process"
-              : "tag-pending";
+      const statusClass = getStatusClass(status, statusMode);
       const statusOptions = statusLabels
         .map((label) => `
           <option value="${escapeHtml(label)}" ${status === label ? "selected" : ""}>${escapeHtml(displayStatus(label))}</option>
         `)
         .join("");
+      const fredyDateControl = statusMode === "fredy"
+        ? `
+          <div class="fredy-date-control fredy-date-cell-control">
+            <label class="fredy-date-label">Fecha pedida de insumos</label>
+            <input
+              class="fredy-date-input"
+              data-process-id="${escapeHtml(process.processId || "")}"
+              type="date"
+              value="${escapeHtml(process.fredyStatusDate || "")}"
+              ${process.processId ? "" : "disabled"}
+            />
+            <div class="fredy-date-actions">
+              <button
+                class="btn btn-outline-primary btn-sm fredy-date-save-button"
+                type="button"
+                data-process-id="${escapeHtml(process.processId || "")}"
+                ${process.processId ? "" : "disabled"}
+              >
+                Guardar
+              </button>
+              <span class="comment-feedback text-muted"></span>
+            </div>
+          </div>
+        `
+        : "";
 
       return `
         <tr>
-          <td>${index + 1}</td>
           <td>${escapeHtml(process.processId || "-")}</td>
-          <td>${escapeHtml(process.phase || "-")}</td>
           <td><strong>${escapeHtml(process.name)}</strong></td>
           <td>${escapeHtml(process.area || "-")}</td>
           <td>${escapeHtml(displayResponsible(getProcessResponsible(process)))}</td>
@@ -47,6 +73,7 @@ export const renderTable = (processes, options = {}) => {
               </select>
             </div>
           </td>
+          <td>${fredyDateControl || '<span class="text-muted">-</span>'}</td>
           <td>
             <div class="comment-control">
               <textarea
@@ -90,11 +117,10 @@ export const renderDistributionTable = (processes) => {
   tbody.innerHTML = processes
     .slice()
     .sort((a, b) => a.assignedTo.localeCompare(b.assignedTo))
-    .map((process, index) => {
+    .map((process) => {
       const status = process.migrationStatus || MIGRATION_STATUS.pending;
       return `
         <tr>
-          <td>${index + 1}</td>
           <td><strong>${escapeHtml(process.name)}</strong></td>
           <td>${escapeHtml(displayResponsible(process.assignedTo))}</td>
           <td><strong>${formatNumber(process.hours, 1)}h</strong></td>

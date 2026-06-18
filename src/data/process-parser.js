@@ -115,6 +115,25 @@ const getCell = (row, index) => {
   return row[index];
 };
 
+const parseDateValue = (value) => {
+  if (value === null || value === undefined || String(value).trim() === "") return "";
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+  }
+  if (typeof value === "number" && value > 1000 && typeof XLSX !== "undefined") {
+    const parsed = XLSX.SSF.parse_date_code(value);
+    if (parsed?.y && parsed?.m && parsed?.d) {
+      return `${parsed.y}-${String(parsed.m).padStart(2, "0")}-${String(parsed.d).padStart(2, "0")}`;
+    }
+  }
+  const raw = String(value).trim();
+  const match = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (match) {
+    return `${match[3]}-${String(match[2]).padStart(2, "0")}-${String(match[1]).padStart(2, "0")}`;
+  }
+  return raw;
+};
+
 const buildProcessMap = (processes = []) => {
   return new Map(
     processes
@@ -304,6 +323,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
     client: findIndexByKey(headerMap, ["cliente"]),
     processName: findIndexByKey(headerMap, ["proceso"]),
     status: findIndexByKey(headerMap, ["estado"]),
+    statusDate: findIndexByKey(headerMap, ["fecha estado", "fecha_estado"]),
   };
 
   const warnings = [];
@@ -318,6 +338,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
     if (index === -1) warnings.push(`No se encontro columna ${name} en Fredy.`);
   });
   if (warnings.length) return { fredyEntries: [], warnings };
+  if (idx.statusDate === -1) warnings.push("No se encontro columna Fecha_estado en Fredy.");
 
   const processById = buildProcessMap(processes);
   const unmatchedIds = new Set();
@@ -330,6 +351,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
       if (processId && !linkedProcess) unmatchedIds.add(processId);
       const monthData = parseMonthValue(getCell(row, idx.month));
       const status = String(getCell(row, idx.status) || "").trim();
+      const statusDate = parseDateValue(getCell(row, idx.statusDate));
 
       return {
         id: `fredy-${processId || "sin-id"}-${index + 1}`,
@@ -342,6 +364,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
         client: String(getCell(row, idx.client) || "").trim(),
         processName: String(getCell(row, idx.processName) || linkedProcess?.name || "Proceso").trim(),
         status,
+        statusDate,
         part: "",
         hours: 0,
         linkedProcess,
@@ -370,6 +393,7 @@ export const parseFredyWorksheet = (worksheet, processes = []) => {
     if (entry.status) {
       entry.linkedProcess.fredyStatus = entry.status;
     }
+    entry.linkedProcess.fredyStatusDate = entry.statusDate || "";
   });
 
   return { fredyEntries, warnings };

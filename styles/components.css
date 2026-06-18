@@ -31,6 +31,68 @@
   text-transform: uppercase;
 }
 
+.fredy-status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: -0.25rem 0 0.8rem;
+  color: #53627c;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.fredy-status-legend span {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.legend-dot {
+  border-radius: 999px;
+  display: inline-block;
+  height: 0.65rem;
+  width: 0.65rem;
+}
+
+.legend-recoveries {
+  background: #f59e0b;
+}
+
+.legend-fredy {
+  background: #0ea5a4;
+}
+
+.fredy-status-card {
+  border: 1px solid transparent;
+  overflow: hidden;
+  position: relative;
+}
+
+.fredy-status-card::before {
+  content: "";
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: 6px;
+}
+
+.fredy-status-recoveries {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.fredy-status-recoveries::before {
+  background: #f59e0b;
+}
+
+.fredy-status-fredy {
+  background: #ecfeff;
+  border-color: #99f6e4;
+}
+
+.fredy-status-fredy::before {
+  background: #0ea5a4;
+}
+
 .module-tabs .btn {
   border-radius: 999px;
   font-size: 0.75rem;
@@ -67,6 +129,16 @@
 .tag-in-process {
   background: #e0f2fe;
   color: #075985;
+}
+
+.tag-fredy-recoveries {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.tag-fredy-owner {
+  background: #ccfbf1;
+  color: #0f766e;
 }
 
 .table thead th {
@@ -106,6 +178,44 @@
 .comment-feedback {
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.fredy-date-control {
+  min-width: 150px;
+}
+
+.fredy-date-label {
+  color: #6b7a99;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.fredy-date-input,
+.schedule-fredy-date-input {
+  border: 1px solid rgba(7, 33, 70, 0.16);
+  border-radius: 0.45rem;
+  font-size: 0.75rem;
+  height: 32px;
+  padding: 0.3rem 0.45rem;
+  width: 100%;
+}
+
+.fredy-date-cell-control .fredy-date-input {
+  max-width: 155px;
+}
+
+.fredy-date-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.28rem;
+}
+
+.fredy-date-actions .btn {
+  padding: 0.22rem 0.5rem;
 }
 
 .chart-box {

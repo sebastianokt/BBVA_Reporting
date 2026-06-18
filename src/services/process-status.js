@@ -46,3 +46,43 @@ export const saveProcessStatus = async ({ processId, status, statusScope = "migr
     return payload;
   }
 };
+
+export const saveFredyStatusDate = async ({ processId, statusDate, userName }) => {
+  const cleanProcessId = String(processId || "").trim();
+  if (!cleanProcessId) throw new Error("ID_PROCESO requerido");
+  if (!isConfigured()) throw new Error("Configura GOOGLE_APPS_SCRIPT_URL");
+
+  const payload = {
+    action: "fredy_date",
+    fredyProcessId: cleanProcessId,
+    statusDate: statusDate || "",
+    userName: userName || "local",
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Apps Script ${response.status}`);
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    if (data?.ok === false) {
+      const appError = new Error(data.error || "No se pudo guardar la fecha");
+      appError.fromAppsScript = true;
+      throw appError;
+    }
+    if (!data?.process || data.process.statusDate === undefined) {
+      const appError = new Error("Apps Script no tiene soporte para Fecha_estado");
+      appError.fromAppsScript = true;
+      throw appError;
+    }
+    return data?.process || payload;
+  } catch (error) {
+    throw error;
+  }
+};

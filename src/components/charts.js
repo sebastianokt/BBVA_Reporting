@@ -1,7 +1,15 @@
-import { STATUS_LABELS } from "../config/constants.js";
+import { FREDY_OWNER_STATUS_LABELS, FREDY_RECOVERIES_STATUS_LABELS, STATUS_LABELS } from "../config/constants.js";
 import { displayResponsible, displayStatus, escapeHtml } from "../services/format.js";
 
 const chartInstances = new Map();
+const DEFAULT_COLORS = ["#00a878", "#3b82f6", "#0ea5e9", "#f59e0b", "#8b5cf6", "#14b8a6", "#64748b", "#ef4444"];
+
+const getStatusColors = (labels = []) =>
+  labels.map((label, index) => {
+    if (FREDY_RECOVERIES_STATUS_LABELS.includes(label)) return "#f59e0b";
+    if (FREDY_OWNER_STATUS_LABELS.includes(label)) return "#0ea5a4";
+    return DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+  });
 
 const clearChart = (id) => {
   if (chartInstances.has(id)) {
@@ -34,7 +42,7 @@ export const renderStatusChart = (statusCounts, statusLabels = STATUS_LABELS) =>
     chart: { type: "donut", height: 260, fontFamily: "Plus Jakarta Sans, sans-serif" },
     labels: labels.map(displayStatus),
     series,
-    colors: ["#00a878", "#3b82f6", "#0ea5e9", "#f59e0b", "#8b5cf6", "#14b8a6", "#64748b", "#ef4444"],
+    colors: getStatusColors(labels),
     legend: { position: "bottom", markers: { radius: 12 } },
     dataLabels: { enabled: true },
     stroke: { colors: ["#ffffff"], width: 2 },
@@ -87,7 +95,7 @@ export const renderStatusBarChart = (statusCounts, statusLabels = STATUS_LABELS)
       toolbar: { show: false },
     },
     series: [{ name: "Procesos", data: series }],
-    colors: ["#004481"],
+    colors: getStatusColors(labels),
     plotOptions: { bar: { borderRadius: 8, horizontal: true, distributed: true } },
     xaxis: {
       categories: labels.map(displayStatus),
@@ -179,7 +187,7 @@ export const renderMonthlyStatusChart = (entries = [], statusLabels = STATUS_LAB
       toolbar: { show: false },
     },
     series,
-    colors: ["#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444", "#14b8a6", "#64748b", "#0ea5e9", "#00a878"],
+    colors: getStatusColors(series.map((serie) => serie.name)),
     plotOptions: { bar: { borderRadius: 6, columnWidth: "48%" } },
     xaxis: {
       categories: months.map((month) => month.month || month.monthKey),

@@ -5,7 +5,7 @@ import { renderDashboard, renderEmptyState } from "../components/ui-state.js";
 import { filterProcesses, filterScheduleEntries, getProcessResponsible, getProcessStatus, getScheduleProcesses, getTeamFiltered } from "../services/filters.js";
 import { displayResponsible, displayStatus } from "../services/format.js";
 import { mergeProcessComments, saveProcessComment } from "../services/comments.js";
-import { saveProcessStatus } from "../services/process-status.js";
+import { saveFredyStatusDate, saveProcessStatus } from "../services/process-status.js";
 import {
   appendHistoryEvent,
   loadHistoryEvents,
@@ -156,6 +156,7 @@ const updateProcessStatusState = ({ processId, status }) => {
     }
   });
   state.scheduleEntries.forEach((entry) => {
+    if (isFredy) return;
     if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
     entry.linkedProcess.migrationStatus = status || MIGRATION_STATUS.pending;
   });
@@ -166,11 +167,32 @@ const updateProcessStatusState = ({ processId, status }) => {
   });
 };
 
+const updateFredyStatusDateState = ({ processId, statusDate }) => {
+  const cleanProcessId = String(processId || "").trim();
+  state.allProcesses.forEach((process) => {
+    if (String(process.processId || "").trim() !== cleanProcessId) return;
+    process.fredyStatusDate = statusDate || "";
+  });
+  state.fredyEntries.forEach((entry) => {
+    if (String(entry.processId || "").trim() !== cleanProcessId) return;
+    entry.statusDate = statusDate || "";
+    if (entry.linkedProcess) entry.linkedProcess.fredyStatusDate = statusDate || "";
+  });
+};
+
 const syncCommentControls = (processId, comments) => {
   document
     .querySelectorAll(".comment-input, .schedule-comment-input")
     .forEach((input) => {
       if (input.dataset.processId === processId) input.value = comments;
+    });
+};
+
+const syncFredyStatusDateControls = (processId, statusDate) => {
+  document
+    .querySelectorAll(".fredy-date-input, .schedule-fredy-date-input")
+    .forEach((input) => {
+      if (input.dataset.processId === processId) input.value = statusDate || "";
     });
 };
 
@@ -217,6 +239,48 @@ const handleCommentSave = async ({ processId, textarea, feedback, button }) => {
   } finally {
     button.disabled = false;
     textarea.disabled = false;
+  }
+};
+
+const handleFredyStatusDateSave = async ({ processId, input, feedback, button }) => {
+  const cleanProcessId = String(processId || "").trim();
+  const statusDate = input?.value || "";
+  const match = state.allProcesses.find((process) => String(process.processId || "").trim() === cleanProcessId);
+  if (!match || !input || !feedback || !button) return;
+
+  button.disabled = true;
+  input.disabled = true;
+  feedback.textContent = "Guardando...";
+  feedback.className = "comment-feedback text-muted";
+
+  try {
+    const previousDate = match.fredyStatusDate || "";
+    const saved = await saveFredyStatusDate({
+      processId: cleanProcessId,
+      statusDate,
+      userName: localStorage.getItem("dashboard-user") || "local",
+    });
+    const savedDate = saved.statusDate ?? statusDate;
+    updateFredyStatusDateState({ processId: cleanProcessId, statusDate: savedDate });
+    syncFredyStatusDateControls(cleanProcessId, savedDate);
+    await appendHistoryEvent({
+      entityType: "process",
+      entityId: cleanProcessId,
+      eventType: "status_date",
+      fieldName: "fredyStatusDate",
+      oldValue: previousDate,
+      newValue: savedDate,
+      source: "google-sheet",
+      userName: saved.userName || localStorage.getItem("dashboard-user") || "local",
+    });
+    feedback.textContent = "Guardado";
+    feedback.className = "comment-feedback text-success";
+  } catch (error) {
+    feedback.textContent = "Error al guardar";
+    feedback.className = "comment-feedback text-danger";
+  } finally {
+    button.disabled = false;
+    input.disabled = false;
   }
 };
 
@@ -405,6 +469,19 @@ document.getElementById("process-table-body")?.addEventListener("click", async (
   });
 });
 
+document.getElementById("process-table-body")?.addEventListener("click", async (event) => {
+  const button = event.target.closest(".fredy-date-save-button");
+  if (!button) return;
+
+  const control = button.closest(".fredy-date-control");
+  await handleFredyStatusDateSave({
+    processId: button.dataset.processId || "",
+    input: control?.querySelector(".fredy-date-input"),
+    feedback: control?.querySelector(".comment-feedback"),
+    button,
+  });
+});
+
 document.getElementById("weekly-schedule")?.addEventListener("click", async (event) => {
   const button = event.target.closest(".schedule-comment-save-button");
   if (!button) return;
@@ -414,6 +491,19 @@ document.getElementById("weekly-schedule")?.addEventListener("click", async (eve
     processId: button.dataset.processId || "",
     textarea: item?.querySelector(".schedule-comment-input"),
     feedback: item?.querySelector(".comment-feedback"),
+    button,
+  });
+});
+
+document.getElementById("weekly-schedule")?.addEventListener("click", async (event) => {
+  const button = event.target.closest(".schedule-fredy-date-save-button");
+  if (!button) return;
+
+  const control = button.closest(".schedule-date-inline");
+  await handleFredyStatusDateSave({
+    processId: button.dataset.processId || "",
+    input: control?.querySelector(".schedule-fredy-date-input"),
+    feedback: control?.querySelector(".comment-feedback"),
     button,
   });
 });

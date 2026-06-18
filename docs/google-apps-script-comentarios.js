@@ -6,6 +6,7 @@ const HEADER_COMMENTS = "Comentarios";
 const HEADER_DATE = "Fecha";
 const HEADER_USER = "Usuario";
 const HEADER_STATUS = "Estado";
+const HEADER_STATUS_DATE = "Fecha_estado";
 const HEADER_DONE = "Ya migrado";
 const HEADER_IN_PROCESS = "En proceso";
 const HEADER_VALIDATING = "Validando";
@@ -195,11 +196,40 @@ const saveStatus = (spreadsheet, payload) => {
   }
 };
 
+const saveFredyDate = (spreadsheet, payload) => {
+  try {
+    const processId = String(payload.processId || payload.fredyProcessId || "").trim();
+    const statusDate = String(payload.statusDate || "").trim();
+    const userName = String(payload.userName || "local");
+    const updatedAt = payload.updatedAt || new Date().toISOString();
+
+    if (!processId) return jsonResponse({ ok: false, error: "ID_PROCESO requerido" });
+
+    const match = findRowById(spreadsheet, SHEET_FREDY, processId);
+    if (!match) {
+      return jsonResponse({ ok: false, error: "ID_PROCESO no existe en Fredy" });
+    }
+    const dateColumn = match.headerMap[normalize(HEADER_STATUS_DATE)];
+    if (!dateColumn) {
+      return jsonResponse({ ok: false, error: "No se encontro columna Fecha_estado en Fredy" });
+    }
+
+    match.sheet.getRange(match.row, dateColumn).setValue(statusDate);
+    return jsonResponse({
+      ok: true,
+      process: { processId, statusDate, updatedAt, userName },
+    });
+  } catch (error) {
+    return jsonResponse({ ok: false, error: error.message });
+  }
+};
+
 function doPost(event) {
   try {
     const payload = JSON.parse(event.postData.contents || "{}");
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     if (payload.action === "status") return saveStatus(spreadsheet, payload);
+    if (payload.action === "fredy_date") return saveFredyDate(spreadsheet, payload);
     return saveComment(spreadsheet, payload);
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
