@@ -63,6 +63,7 @@ Cuando se cambia el estado desde la tabla de procesos en Recoveries, el Apps Scr
 
 Cuando se cambia el estado en Migracion Fredy, el Apps Script actualiza la columna `Estado` de la hoja `Fredy`. Los estados validos para esa vista son:
 
+- `No ha iniciado la migracion`
 - `Falta insumos`
 - `Insumos entregados`
 - `Comentarios insumos`
@@ -71,6 +72,8 @@ Cuando se cambia el estado en Migracion Fredy, el Apps Script actualiza la colum
 - `Falta VoBo de procesos`
 - `VoBo de proceso`
 - `Ya migrado`
+
+Si `Estado` viene vacio en la hoja `Fredy`, el dashboard lo muestra como `No ha iniciado la migracion`.
 
 ## Desarrollo local opcional
 

@@ -150,7 +150,7 @@ const updateProcessStatusState = ({ processId, status }) => {
   state.allProcesses.forEach((process) => {
     if (String(process.processId || "").trim() !== cleanProcessId) return;
     if (isFredy) {
-      process.fredyStatus = status || FREDY_STATUS.missingInputs;
+      process.fredyStatus = status || FREDY_STATUS.notStarted;
     } else {
       process.migrationStatus = status || MIGRATION_STATUS.pending;
     }
@@ -161,8 +161,8 @@ const updateProcessStatusState = ({ processId, status }) => {
   });
   state.fredyEntries.forEach((entry) => {
     if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
-    entry.status = status || FREDY_STATUS.missingInputs;
-    entry.linkedProcess.fredyStatus = status || FREDY_STATUS.missingInputs;
+    entry.status = status || FREDY_STATUS.notStarted;
+    entry.linkedProcess.fredyStatus = status || FREDY_STATUS.notStarted;
   });
 };
 
@@ -365,18 +365,18 @@ document.getElementById("process-table-body")?.addEventListener("change", async 
   try {
     await saveProcessStatus({
       processId,
-      status: value || (state.activeTeam === "F" ? FREDY_STATUS.missingInputs : MIGRATION_STATUS.pending),
+      status: value || (state.activeTeam === "F" ? FREDY_STATUS.notStarted : MIGRATION_STATUS.pending),
       statusScope: state.activeTeam === "F" ? "fredy" : "migration",
       userName: localStorage.getItem("dashboard-user") || "local",
     });
-    updateProcessStatusState({ processId, status: value || (state.activeTeam === "F" ? FREDY_STATUS.missingInputs : MIGRATION_STATUS.pending) });
+    updateProcessStatusState({ processId, status: value || (state.activeTeam === "F" ? FREDY_STATUS.notStarted : MIGRATION_STATUS.pending) });
     await appendHistoryEvent({
       entityType: "process",
       entityId: match.processId || match.key,
       eventType: "status_change",
       fieldName: state.activeTeam === "F" ? "fredyStatus" : "migrationStatus",
       oldValue: previous,
-      newValue: value || (state.activeTeam === "F" ? FREDY_STATUS.missingInputs : MIGRATION_STATUS.pending),
+      newValue: value || (state.activeTeam === "F" ? FREDY_STATUS.notStarted : MIGRATION_STATUS.pending),
       source: "google-sheet",
       userName: localStorage.getItem("dashboard-user") || "local",
     });

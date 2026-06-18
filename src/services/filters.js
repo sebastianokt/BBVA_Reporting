@@ -5,7 +5,7 @@ export const getProcessResponsible = (process) => {
 };
 
 export const getProcessStatus = (process, statusMode = "migration") => {
-  if (statusMode === "fredy") return process.fredyStatus || FREDY_STATUS.missingInputs;
+  if (statusMode === "fredy") return process.fredyStatus || FREDY_STATUS.notStarted;
   return process.migrationStatus;
 };
 

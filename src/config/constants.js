@@ -16,6 +16,7 @@ export const MIGRATION_STATUS = {
 };
 
 export const FREDY_STATUS = {
+  notStarted: "No ha iniciado la migracion",
   missingInputs: "Falta insumos",
   inputsDelivered: "Insumos entregados",
   inputComments: "Comentarios insumos",
@@ -34,6 +35,7 @@ export const STATUS_LABELS = [
 ];
 
 export const FREDY_STATUS_LABELS = [
+  FREDY_STATUS.notStarted,
   FREDY_STATUS.missingInputs,
   FREDY_STATUS.inputsDelivered,
   FREDY_STATUS.inputComments,

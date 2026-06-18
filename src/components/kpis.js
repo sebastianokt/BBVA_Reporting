@@ -55,6 +55,7 @@ export const updateKpis = (metrics, options = {}) => {
   setGroupVisibility(activeTeam);
 
   const fredyDone = countStatus(fredyStats, FREDY_STATUS.done);
+  setText("kpi-f-not-started", countStatus(fredyStats, FREDY_STATUS.notStarted));
   setText("kpi-f-pending", countStatus(fredyStats, FREDY_STATUS.missingInputs));
   setText("kpi-f-in-process", countStatus(fredyStats, FREDY_STATUS.inputsDelivered));
   setText("kpi-f-validating", countStatus(fredyStats, FREDY_STATUS.inputComments));
