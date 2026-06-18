@@ -230,7 +230,8 @@ function doPost(event) {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     if (payload.action === "status") return saveStatus(spreadsheet, payload);
     if (payload.action === "fredy_date") return saveFredyDate(spreadsheet, payload);
-    return saveComment(spreadsheet, payload);
+    if (!payload.action || payload.action === "comment") return saveComment(spreadsheet, payload);
+    return jsonResponse({ ok: false, error: `Accion no soportada: ${payload.action}` });
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
   }

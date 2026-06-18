@@ -54,6 +54,7 @@ export const saveFredyStatusDate = async ({ processId, statusDate, userName }) =
 
   const payload = {
     action: "fredy_date",
+    processId: cleanProcessId,
     fredyProcessId: cleanProcessId,
     statusDate: statusDate || "",
     userName: userName || "local",
