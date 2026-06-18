@@ -8,12 +8,12 @@ export const getTeamFiltered = (processes, team) => {
 };
 
 export const getScheduleProcesses = (processes, team) => {
-  if (team === "F") return [];
+  if (team === "F") return processes;
   if (team === "R") return processes;
   return processes.filter((process) => (process.team || "R") !== "F");
 };
 
-export const filterProcesses = (processes, { query, responsable, statusValue, weekValue = "all", typeValue = "all" }) => {
+export const filterProcesses = (processes, { query, responsable, statusValue, weekValue = "all", typeValue = "all", temporalMode = "week" }) => {
   const normalizedQuery = query.trim().toLowerCase();
 
   return processes.filter((process) => {
@@ -21,9 +21,14 @@ export const filterProcesses = (processes, { query, responsable, statusValue, we
     if (statusValue !== "all" && process.migrationStatus !== statusValue) return false;
     if (typeValue !== "all" && (process.processType || process.team || "Sin tipo") !== typeValue) return false;
     if (weekValue !== "all") {
-      const week = Number.parseInt(weekValue, 10);
-      const weeks = process.scheduleWeeks || [];
-      if (!weeks.includes(week)) return false;
+      if (temporalMode === "month") {
+        const months = process.scheduleMonths || [];
+        if (!months.includes(weekValue)) return false;
+      } else {
+        const week = Number.parseInt(weekValue, 10);
+        const weeks = process.scheduleWeeks || [];
+        if (!weeks.includes(week)) return false;
+      }
     }
     if (!normalizedQuery) return true;
 
@@ -37,7 +42,13 @@ export const filterProcesses = (processes, { query, responsable, statusValue, we
 
 export const filterScheduleEntries = (entries = [], { weekValue = "all", typeValue = "all", processIds = null }) => {
   return entries.filter((entry) => {
-    if (weekValue !== "all" && entry.week !== Number.parseInt(weekValue, 10)) return false;
+    if (weekValue !== "all") {
+      if (entry.source === "fredy") {
+        if (entry.monthKey !== weekValue) return false;
+      } else if (entry.week !== Number.parseInt(weekValue, 10)) {
+        return false;
+      }
+    }
     if (processIds && entry.processId && !processIds.has(String(entry.processId))) return false;
     if (typeValue !== "all") {
       const linkedType = entry.linkedProcess?.processType || entry.linkedProcess?.team || "Sin tipo";

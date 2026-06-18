@@ -20,10 +20,12 @@ const responsableFilter = document.getElementById("responsable-filter");
 const statusFilter = document.getElementById("status-filter");
 const weekFilter = document.getElementById("week-filter");
 const typeFilter = document.getElementById("type-filter");
+const scheduleTitle = document.getElementById("schedule-title");
 
 const state = {
   allProcesses: [],
   scheduleEntries: [],
+  fredyEntries: [],
   historyEvents: [],
   activeTeam: "ALL",
   activeModule: "overview",
@@ -37,11 +39,36 @@ const setStatus = (message, tone = "info") => {
 
 const updateWeekOptions = (scheduleEntries) => {
   if (!weekFilter) return;
+  const isMonthMode = state.activeTeam === "F";
+  const currentValue = weekFilter.value || "all";
+  const label = document.querySelector('label[for="week-filter"]');
+  if (label) label.textContent = isMonthMode ? "Mes" : "Semana";
+  if (scheduleTitle) scheduleTitle.textContent = isMonthMode ? "Cronograma mensual" : "Calendario por semana";
+  weekFilter.innerHTML = isMonthMode
+    ? '<option value="all">Todos los meses</option>'
+    : '<option value="all">Todas las semanas</option>';
+
+  if (isMonthMode) {
+    const months = Array.from(
+      new Map(
+        scheduleEntries
+          .filter((entry) => entry.monthKey)
+          .map((entry) => [entry.monthKey, entry])
+      ).values()
+    ).sort((a, b) => (a.monthOrder || 9999) - (b.monthOrder || 9999) || String(a.month).localeCompare(String(b.month)));
+    months.forEach((entry) => {
+      const option = document.createElement("option");
+      option.value = entry.monthKey;
+      option.textContent = entry.month || entry.monthKey;
+      weekFilter.appendChild(option);
+    });
+    weekFilter.value = currentValue !== "all" && !months.some((entry) => entry.monthKey === currentValue) ? "all" : currentValue;
+    return;
+  }
+
   const weeks = Array.from(
     new Set(scheduleEntries.map((entry) => entry.week).filter((week) => Number.isInteger(week) && week > 0))
   ).sort((a, b) => a - b);
-  const currentValue = weekFilter.value || "all";
-  weekFilter.innerHTML = '<option value="all">Todas las semanas</option>';
   weeks.forEach((week) => {
     const option = document.createElement("option");
     option.value = String(week);
@@ -95,6 +122,12 @@ const updateProcessCommentState = ({ processId, comments, updatedAt, userName })
     entry.linkedProcess.commentUpdatedAt = updatedAt;
     entry.linkedProcess.commentUserName = userName;
   });
+  state.fredyEntries.forEach((entry) => {
+    if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
+    entry.linkedProcess.comments = comments;
+    entry.linkedProcess.commentUpdatedAt = updatedAt;
+    entry.linkedProcess.commentUserName = userName;
+  });
 };
 
 const updateProcessStatusState = ({ processId, status }) => {
@@ -104,6 +137,10 @@ const updateProcessStatusState = ({ processId, status }) => {
     process.migrationStatus = status || MIGRATION_STATUS.pending;
   });
   state.scheduleEntries.forEach((entry) => {
+    if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
+    entry.linkedProcess.migrationStatus = status || MIGRATION_STATUS.pending;
+  });
+  state.fredyEntries.forEach((entry) => {
     if (String(entry.processId || "").trim() !== cleanProcessId || !entry.linkedProcess) return;
     entry.linkedProcess.migrationStatus = status || MIGRATION_STATUS.pending;
   });
@@ -208,6 +245,7 @@ const applyFilters = () => {
     statusValue: statusFilter.value,
     weekValue: weekFilter?.value || "all",
     typeValue: typeFilter?.value || "all",
+    temporalMode: state.activeTeam === "F" ? "month" : "week",
   });
   const visibleProcessIds = new Set(
     getScheduleProcesses(filtered, state.activeTeam)
@@ -215,7 +253,8 @@ const applyFilters = () => {
       .filter(Boolean)
       .map(String)
   );
-  const filteredScheduleEntries = filterScheduleEntries(state.scheduleEntries, {
+  const sourceScheduleEntries = state.activeTeam === "F" ? state.fredyEntries : state.scheduleEntries;
+  const filteredScheduleEntries = filterScheduleEntries(sourceScheduleEntries, {
     weekValue: weekFilter?.value || "all",
     typeValue: typeFilter?.value || "all",
     processIds: visibleProcessIds,
@@ -223,8 +262,8 @@ const applyFilters = () => {
 
   renderDashboard(filtered, {
     activeTeam: state.activeTeam,
-    skipSchedule: state.activeTeam === "F",
     scheduleEntries: filteredScheduleEntries,
+    scheduleMode: state.activeTeam === "F" ? "month" : "week",
     historyEvents: state.historyEvents,
   });
 };
@@ -238,15 +277,16 @@ const handleResult = async (result, fileName = DEFAULT_FILE_NAME) => {
 
   state.allProcesses = mergeProcessComments(result.processes, result.commentsByProcessId || {});
   state.scheduleEntries = relinkScheduleEntries(result.scheduleEntries || [], state.allProcesses);
+  state.fredyEntries = relinkScheduleEntries(result.fredyEntries || [], state.allProcesses);
   state.sourceFileName = fileName;
   state.historyEvents = await loadHistoryEvents();
   updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
-  updateWeekOptions(state.scheduleEntries);
+  updateWeekOptions(state.activeTeam === "F" ? state.fredyEntries : state.scheduleEntries);
   updateTypeOptions(state.allProcesses);
   await recordImportSnapshot({
     fileName,
     processes: state.allProcesses,
-    scheduleEntries: state.scheduleEntries,
+    scheduleEntries: [...state.scheduleEntries, ...state.fredyEntries],
     warnings: result.warnings || [],
   });
   state.historyEvents = await loadHistoryEvents();
@@ -255,7 +295,7 @@ const handleResult = async (result, fileName = DEFAULT_FILE_NAME) => {
   if (result.warnings.length) {
     setStatus(result.warnings.join(" | "), "error");
   } else {
-    setStatus(`Datos listos: ${result.processes.length} procesos y ${state.scheduleEntries.length} filas de cronograma cargados.`, "success");
+    setStatus(`Datos listos: ${result.processes.length} procesos, ${state.scheduleEntries.length} filas de cronograma y ${state.fredyEntries.length} filas Fredy cargadas.`, "success");
   }
 };
 
@@ -368,6 +408,7 @@ document.querySelectorAll("[data-team]").forEach((link) => {
     if (!link.dataset.team) return;
     setActiveTeam(link.dataset.team, state, () => {
       updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
+      updateWeekOptions(state.activeTeam === "F" ? state.fredyEntries : state.scheduleEntries);
       applyFilters();
     });
   });
@@ -376,5 +417,6 @@ document.querySelectorAll("[data-team]").forEach((link) => {
 setActiveModule("overview", state);
 setActiveTeam("ALL", state, () => {
   updateResponsableOptions(getTeamFiltered(state.allProcesses, state.activeTeam));
+  updateWeekOptions(state.scheduleEntries);
 });
 tryAutoLoad();

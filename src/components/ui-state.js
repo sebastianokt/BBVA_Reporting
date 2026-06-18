@@ -81,11 +81,7 @@ export const renderDashboard = (processes, options = {}) => {
   renderWeeklyComparisonChart("#chart-jorge-weekly", comparisons.find((item) => item.person === "Jorge"));
   renderWeeklyComparisonChart("#chart-Johan-weekly", comparisons.find((item) => item.person === "Johan"));
 
-  if (options.skipSchedule) {
-    renderWeeklySchedule([]);
-  } else {
-    renderWeeklySchedule(options.scheduleEntries || []);
-  }
+  renderWeeklySchedule(options.scheduleEntries || [], { mode: options.scheduleMode || "week" });
 
   renderTable(processes);
   renderDistributionTable(processes);

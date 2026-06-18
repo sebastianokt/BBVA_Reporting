@@ -24,7 +24,14 @@ El Google Sheet debe mantener estas hojas:
 
 - `Hoja 1`: procesos principales.
 - `Cronograma`: planificacion semanal.
+- `Fredy`: planificacion mensual de Migracion Fredy.
 - `Comentarios`: novedades por proceso.
+
+La hoja `Fredy` debe tener estas columnas:
+
+```text
+ID_PROCESO | Mes | Persona | Cliente | Proceso
+```
 
 La hoja `Comentarios` debe tener estas columnas:
 

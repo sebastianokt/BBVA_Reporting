@@ -1,6 +1,6 @@
 import { DEFAULT_FILE_NAME } from "../config/constants.js";
 import { normalizeKey } from "./migration-rules.js";
-import { parseCommentsWorksheet, parseScheduleWorksheet, parseWorksheet } from "./process-parser.js";
+import { parseCommentsWorksheet, parseFredyWorksheet, parseScheduleWorksheet, parseWorksheet } from "./process-parser.js";
 
 const findSheetName = (workbook, candidates) => {
   const normalizedCandidates = candidates.map((candidate) => normalizeKey(candidate));
@@ -13,6 +13,7 @@ const parseWorkbook = (data, type) => {
   const workbook = XLSX.read(data, { type });
   const processSheetName = findSheetName(workbook, ["Hoja 1"]) || workbook.SheetNames[0];
   const scheduleSheetName = findSheetName(workbook, ["Cronograma"]);
+  const fredySheetName = findSheetName(workbook, ["Fredy"]);
   const commentsSheetName = findSheetName(workbook, ["Comentarios"]);
 
   const processResult = parseWorksheet(workbook.Sheets[processSheetName]);
@@ -23,12 +24,22 @@ const parseWorkbook = (data, type) => {
   const commentsResult = parseCommentsWorksheet(
     commentsSheetName ? workbook.Sheets[commentsSheetName] : null
   );
+  const fredyResult = parseFredyWorksheet(
+    fredySheetName ? workbook.Sheets[fredySheetName] : null,
+    processResult.processes
+  );
 
   return {
     processes: processResult.processes,
     scheduleEntries: scheduleResult.scheduleEntries,
+    fredyEntries: fredyResult.fredyEntries,
     commentsByProcessId: commentsResult.commentsByProcessId,
-    warnings: [...processResult.warnings, ...scheduleResult.warnings, ...commentsResult.warnings],
+    warnings: [
+      ...processResult.warnings,
+      ...scheduleResult.warnings,
+      ...fredyResult.warnings,
+      ...commentsResult.warnings,
+    ],
   };
 };
 

@@ -43,6 +43,37 @@ const groupSchedule = (entries) => {
   });
 };
 
+const groupMonthlySchedule = (entries) => {
+  const months = new Map();
+
+  entries.forEach((entry) => {
+    const monthKey = entry.monthKey || "sin-mes";
+    if (!months.has(monthKey)) {
+      months.set(monthKey, {
+        monthKey,
+        month: entry.month || "Sin mes",
+        monthOrder: entry.monthOrder || 9999,
+        people: new Map(),
+      });
+    }
+
+    const month = months.get(monthKey);
+    const personKey = entry.person || "Sin responsable";
+    if (!month.people.has(personKey)) {
+      month.people.set(personKey, {
+        name: personKey,
+        items: [],
+      });
+    }
+
+    month.people.get(personKey).items.push(entry);
+  });
+
+  return Array.from(months.values()).sort((a, b) => {
+    return (a.monthOrder || 9999) - (b.monthOrder || 9999) || String(a.month).localeCompare(String(b.month));
+  });
+};
+
 const getStatusClass = (status) => {
   if (status === MIGRATION_STATUS.done) return "tag-done";
   if (status === MIGRATION_STATUS.validating) return "tag-validating";
@@ -50,7 +81,7 @@ const getStatusClass = (status) => {
   return "tag-pending";
 };
 
-const buildItemLabel = (entry) => {
+const buildItemLabel = (entry, options = {}) => {
   const title = entry.processName || entry.linkedProcess?.name || "Proceso";
   const status = entry.linkedProcess?.migrationStatus || MIGRATION_STATUS.pending;
   const processId = String(entry.processId || entry.linkedProcess?.processId || "").trim();
@@ -73,7 +104,7 @@ const buildItemLabel = (entry) => {
         </div>
         <div class="schedule-item-badges">
           <span class="tag-pill ${getStatusClass(status)}">${escapeHtml(displayStatus(status))}</span>
-          <span class="schedule-hours">${formatNumber(entry.hours || 0, 1)}h</span>
+          <span class="schedule-hours">${options.mode === "month" ? "1 parte" : `${formatNumber(entry.hours || 0, 1)}h`}</span>
         </div>
       </div>
       <div class="schedule-comment">
@@ -100,12 +131,12 @@ const buildItemLabel = (entry) => {
   `;
 };
 
-const buildList = (items) => {
+const buildList = (items, options = {}) => {
   if (!items.length) return '<div class="schedule-empty">Sin procesos</div>';
-  return `<div class="schedule-items">${items.map(buildItemLabel).join("")}</div>`;
+  return `<div class="schedule-items">${items.map((item) => buildItemLabel(item, options)).join("")}</div>`;
 };
 
-export const renderWeeklySchedule = (scheduleEntries = []) => {
+export const renderWeeklySchedule = (scheduleEntries = [], options = {}) => {
   const list = document.getElementById("weekly-schedule");
   const meta = document.getElementById("schedule-meta");
   if (!list || !meta) return;
@@ -116,45 +147,57 @@ export const renderWeeklySchedule = (scheduleEntries = []) => {
     return;
   }
 
-  const weeks = groupSchedule(scheduleEntries);
+  const isMonthMode = options.mode === "month";
+  const groups = isMonthMode ? groupMonthlySchedule(scheduleEntries) : groupSchedule(scheduleEntries);
   const totalHours = scheduleEntries.reduce((sum, entry) => sum + (Number(entry.hours) || 0), 0);
 
-  meta.textContent = `${scheduleEntries.length} filas planificadas - ${formatNumber(totalHours, 1)}h - ${weeks.length} semanas`;
+  meta.textContent = isMonthMode
+    ? `${scheduleEntries.length} filas planificadas - ${groups.length} meses`
+    : `${scheduleEntries.length} filas planificadas - ${formatNumber(totalHours, 1)}h - ${groups.length} semanas`;
 
-  list.innerHTML = weeks
-    .map((week) => {
-      const people = Array.from(week.people.values()).sort((a, b) =>
+  list.innerHTML = groups
+    .map((group) => {
+      const people = Array.from(group.people.values()).sort((a, b) =>
         getDisplayName({ person: a.name }).localeCompare(getDisplayName({ person: b.name }))
       );
       const processCount = new Set(
         people.flatMap((person) => person.items.map((item) => String(item.processId || "").trim()).filter(Boolean))
       ).size;
+      const partsCount = people.reduce((total, person) => total + person.items.length, 0);
+      const groupHours = isMonthMode
+        ? 0
+        : people.reduce(
+            (total, person) => total + person.items.reduce((sum, item) => sum + (Number(item.hours) || 0), 0),
+            0
+          );
       const peopleBlocks = people
         .map((person) => `
           <div class="schedule-person">
             <div class="schedule-person-header">
               <div>
                 <div class="person-name">${escapeHtml(displayResponsible(person.name))}</div>
-                <div class="person-metrics">${person.items.length} partes · ${formatNumber(person.totalHours, 1)}h</div>
+                <div class="person-metrics">${person.items.length} partes${isMonthMode ? "" : ` · ${formatNumber(person.totalHours, 1)}h`}</div>
               </div>
-              <span class="pill">${formatNumber(person.totalHours, 1)}h</span>
+              <span class="pill">${isMonthMode ? `${person.items.length} partes` : `${formatNumber(person.totalHours, 1)}h`}</span>
             </div>
-            ${buildList(person.items)}
+            ${buildList(person.items, { mode: options.mode })}
           </div>
         `)
         .join("");
-      const title = week.weekNumber === 0 ? "Semana sin definir" : `Semana ${week.weekNumber}`;
+      const title = isMonthMode
+        ? group.month
+        : group.weekNumber === 0 ? "Semana sin definir" : `Semana ${group.weekNumber}`;
 
       return `
         <div class="schedule-card">
           <div class="schedule-week">
             ${title}
-            <span>${formatNumber(week.totalHours, 1)}h planificadas</span>
+            <span>${isMonthMode ? `${partsCount} partes planificadas` : `${formatNumber(group.totalHours ?? groupHours, 1)}h planificadas`}</span>
           </div>
           <div class="schedule-summary">
             <span>${processCount} procesos</span>
             <span>${people.length} responsables</span>
-            <span>${people.reduce((total, person) => total + person.items.length, 0)} partes</span>
+            <span>${partsCount} partes</span>
           </div>
           <div class="schedule-people">${peopleBlocks}</div>
         </div>

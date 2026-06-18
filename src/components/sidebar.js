@@ -19,15 +19,5 @@ export const setActiveTeam = (team, state, onChange) => {
     link.classList.toggle("active", link.dataset.team === team);
   });
 
-  const scheduleButton = document.querySelector('.module-tabs [data-module="schedule"]');
-  if (team === "F") {
-    scheduleButton?.classList.add("disabled");
-    scheduleButton?.setAttribute("disabled", "true");
-    if (state.activeModule === "schedule") setActiveModule("overview", state);
-  } else {
-    scheduleButton?.classList.remove("disabled");
-    scheduleButton?.removeAttribute("disabled");
-  }
-
   onChange?.();
 };

@@ -11,6 +11,20 @@ import { assignByHours } from "../services/team-assignment.js";
 
 const TEAM_DEFAULT = "R";
 const FALLBACK_AREA_INDEX = 4;
+const MONTH_NAMES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
 
 const buildHeaderMap = (headers) => {
   const map = new Map();
@@ -57,9 +71,56 @@ const parseWeekNumber = (value) => {
   return week;
 };
 
+const parseMonthValue = (value) => {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return { month: "Sin mes", monthKey: "sin-mes", monthOrder: 9999 };
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const month = value.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+    const monthKey = `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}`;
+    return { month, monthKey, monthOrder: value.getFullYear() * 100 + value.getMonth() + 1 };
+  }
+  if (typeof value === "number" && value > 1000 && typeof XLSX !== "undefined") {
+    const parsed = XLSX.SSF.parse_date_code(value);
+    if (parsed?.y && parsed?.m) {
+      const date = new Date(parsed.y, parsed.m - 1, 1);
+      const month = date.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+      const monthKey = `${parsed.y}-${String(parsed.m).padStart(2, "0")}`;
+      return { month, monthKey, monthOrder: parsed.y * 100 + parsed.m };
+    }
+  }
+  const raw = String(value).trim();
+  const normalized = normalizeKey(raw);
+  const numeric = Number.parseInt(raw, 10);
+  if (Number.isInteger(numeric) && numeric > 0 && numeric <= 12) {
+    return { month: MONTH_NAMES[numeric - 1], monthKey: String(numeric), monthOrder: numeric };
+  }
+  const match = normalized.match(/(\d{4})\s+(\d{1,2})|(\d{1,2})\s+(\d{4})/);
+  if (match) {
+    const year = Number.parseInt(match[1] || match[4], 10);
+    const monthNumber = Number.parseInt(match[2] || match[3], 10);
+    if (monthNumber >= 1 && monthNumber <= 12) {
+      return {
+        month: raw,
+        monthKey: `${year}-${String(monthNumber).padStart(2, "0")}`,
+        monthOrder: year * 100 + monthNumber,
+      };
+    }
+  }
+  return { month: raw, monthKey: normalized || raw, monthOrder: 5000 };
+};
+
 const getCell = (row, index) => {
   if (index < 0 || index >= row.length) return "";
   return row[index];
+};
+
+const buildProcessMap = (processes = []) => {
+  return new Map(
+    processes
+      .filter((process) => process.processId)
+      .map((process) => [String(process.processId).trim(), process])
+  );
 };
 
 export const parseWorksheet = (worksheet) => {
@@ -179,11 +240,7 @@ export const parseScheduleWorksheet = (worksheet, processes = []) => {
     if (index === -1) warnings.push(`No se encontro columna ${name} en Cronograma.`);
   });
 
-  const processById = new Map(
-    processes
-      .filter((process) => process.processId)
-      .map((process) => [String(process.processId).trim(), process])
-  );
+  const processById = buildProcessMap(processes);
   const unmatchedIds = new Set();
 
   const scheduleEntries = rows
@@ -232,6 +289,83 @@ export const parseScheduleWorksheet = (worksheet, processes = []) => {
   });
 
   return { scheduleEntries, warnings };
+};
+
+export const parseFredyWorksheet = (worksheet, processes = []) => {
+  if (!worksheet) return { fredyEntries: [], warnings: [] };
+
+  const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "", cellDates: true });
+  const headers = rows[0] || [];
+  const headerMap = buildHeaderMap(headers);
+  const idx = {
+    processId: findIndexByKey(headerMap, ["id proceso", "id_proceso"]),
+    month: findIndexByKey(headerMap, ["mes"]),
+    person: findIndexByKey(headerMap, ["persona"]),
+    client: findIndexByKey(headerMap, ["cliente"]),
+    processName: findIndexByKey(headerMap, ["proceso"]),
+  };
+
+  const warnings = [];
+  [
+    ["ID_PROCESO", idx.processId],
+    ["Mes", idx.month],
+    ["Persona", idx.person],
+    ["Cliente", idx.client],
+    ["Proceso", idx.processName],
+  ].forEach(([name, index]) => {
+    if (index === -1) warnings.push(`No se encontro columna ${name} en Fredy.`);
+  });
+  if (warnings.length) return { fredyEntries: [], warnings };
+
+  const processById = buildProcessMap(processes);
+  const unmatchedIds = new Set();
+  const fredyEntries = rows
+    .slice(1)
+    .filter((row) => row.some((value) => String(value).trim() !== ""))
+    .map((row, index) => {
+      const processId = String(getCell(row, idx.processId) ?? "").trim();
+      const linkedProcess = processById.get(processId) || null;
+      if (processId && !linkedProcess) unmatchedIds.add(processId);
+      const monthData = parseMonthValue(getCell(row, idx.month));
+
+      return {
+        id: `fredy-${processId || "sin-id"}-${index + 1}`,
+        source: "fredy",
+        processId,
+        month: monthData.month,
+        monthKey: monthData.monthKey,
+        monthOrder: monthData.monthOrder,
+        person: String(getCell(row, idx.person) || "").trim(),
+        client: String(getCell(row, idx.client) || "").trim(),
+        processName: String(getCell(row, idx.processName) || linkedProcess?.name || "Proceso").trim(),
+        part: "",
+        hours: 0,
+        linkedProcess,
+        orderIndex: index,
+      };
+    })
+    .filter((entry) => entry.monthKey || entry.processId || entry.processName);
+
+  if (unmatchedIds.size) {
+    warnings.push(`Fredy tiene ID_PROCESO sin coincidencia en Hoja 1: ${Array.from(unmatchedIds).join(", ")}.`);
+  }
+
+  fredyEntries.forEach((entry) => {
+    if (!entry.linkedProcess) return;
+    if (!entry.linkedProcess.scheduleMonths) entry.linkedProcess.scheduleMonths = [];
+    if (!entry.linkedProcess.schedulePeople) entry.linkedProcess.schedulePeople = [];
+    if (entry.monthKey && !entry.linkedProcess.scheduleMonths.includes(entry.monthKey)) {
+      entry.linkedProcess.scheduleMonths.push(entry.monthKey);
+    }
+    if (entry.person && !entry.linkedProcess.schedulePeople.includes(entry.person)) {
+      entry.linkedProcess.schedulePeople.push(entry.person);
+    }
+    if (!entry.linkedProcess.personaCronograma && entry.person) {
+      entry.linkedProcess.personaCronograma = entry.person;
+    }
+  });
+
+  return { fredyEntries, warnings };
 };
 
 export const parseCommentsWorksheet = (worksheet) => {
