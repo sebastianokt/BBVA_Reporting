@@ -2,7 +2,9 @@ import { MIGRATION_STATUS } from "../config/constants.js";
 import {
   renderEmptyChart,
   renderLineChart,
+  renderMonthlyStatusChart,
   renderResponsibleChart,
+  renderStatusBarChart,
   renderStatusChart,
   renderWeeklyComparisonChart,
 } from "./charts.js";
@@ -26,22 +28,37 @@ export const buildLineSeries = (processes, responsibles) => {
   });
 };
 
+const setChartTitle = (id, text) => {
+  const element = document.getElementById(id);
+  if (element) element.textContent = text;
+};
+
+const setRecoveriesChartVisibility = (visible) => {
+  document.querySelectorAll("[data-recoveries-chart]").forEach((element) => {
+    element.hidden = !visible;
+  });
+};
+
+const setTypeBreakdownVisibility = (visible) => {
+  const element = document.getElementById("type-breakdown-card");
+  if (element) element.hidden = !visible;
+};
+
 export const renderEmptyState = (message, options = {}) => {
-  updateStats({ total: 0, totalHours: 0, avgHours: 0, balance: 0 });
-  updateKpis(
-    {
-      statusCounts: {
-        [MIGRATION_STATUS.pending]: 0,
-        [MIGRATION_STATUS.inProcess]: 0,
-        [MIGRATION_STATUS.validating]: 0,
-        [MIGRATION_STATUS.done]: 0,
-      },
-      hoursByResponsible: { Jorge: 0, Johan: 0, Fredy: 0 },
-      typeCounts: {},
-      breakdownByType: {},
+  const isFredy = options.activeTeam === "F";
+  const emptyMetrics = {
+    statusCounts: {
+      [MIGRATION_STATUS.pending]: 0,
+      [MIGRATION_STATUS.inProcess]: 0,
+      [MIGRATION_STATUS.validating]: 0,
+      [MIGRATION_STATUS.done]: 0,
     },
-    { activeTeam: options.activeTeam || "ALL" }
-  );
+    hoursByResponsible: { Jorge: 0, Johan: 0, Fredy: 0 },
+    typeCounts: {},
+    breakdownByType: {},
+  };
+  updateStats({ total: 0, totalHours: 0, avgHours: 0, balance: 0 });
+  updateKpis(emptyMetrics, { activeTeam: options.activeTeam || "ALL", fredyMetrics: emptyMetrics });
   updateTeamCards(
     {
       totalHours: 0,
@@ -55,6 +72,11 @@ export const renderEmptyState = (message, options = {}) => {
   renderEmptyChart("#chart-acumulado", message);
   renderEmptyChart("#chart-jorge-weekly", message);
   renderEmptyChart("#chart-Johan-weekly", message);
+  setRecoveriesChartVisibility(!isFredy);
+  setChartTitle("chart-status-title", isFredy ? "Estados Fredy" : "Estado migración");
+  setChartTitle("chart-responsables-title", isFredy ? "Procesos por estado Fredy" : "Horas por responsable");
+  setChartTitle("chart-acumulado-title", isFredy ? "Estados por mes" : "Acumulado de horas");
+  setTypeBreakdownVisibility(!isFredy);
   renderTable([], options);
   renderDistributionTable([]);
   renderTypeBreakdownTable({});
@@ -71,17 +93,37 @@ export const renderDashboard = (processes, options = {}) => {
   const statusMode = options.statusMode || "migration";
   const statusLabels = options.statusLabels;
   const metrics = computeMetrics(processes, { statusMode });
+  const fredyMetrics = computeMetrics(processes, { statusMode: "fredy" });
+  const isFredy = options.activeTeam === "F";
   updateStats(metrics);
-  updateKpis(metrics, { activeTeam: options.activeTeam || "ALL" });
+  updateKpis(metrics, { activeTeam: options.activeTeam || "ALL", fredyMetrics });
   updateTeamCards(metrics, { activeTeam: options.activeTeam || "ALL" });
   renderStatusChart(metrics.statusCounts, statusLabels);
-  renderResponsibleChart(metrics.hoursByResponsible, metrics.responsibles);
-  renderLineChart(buildLineSeries(processes, metrics.responsibles));
+  setRecoveriesChartVisibility(!isFredy);
+
+  if (isFredy) {
+    setChartTitle("chart-status-title", "Estados Fredy");
+    setChartTitle("chart-responsables-title", "Procesos por estado Fredy");
+    setChartTitle("chart-acumulado-title", "Estados por mes");
+    renderStatusBarChart(metrics.statusCounts, statusLabels);
+    renderMonthlyStatusChart(options.scheduleEntries || [], statusLabels);
+    renderEmptyChart("#chart-jorge-weekly", "");
+    renderEmptyChart("#chart-Johan-weekly", "");
+  } else {
+    setChartTitle("chart-status-title", "Estado migración");
+    setChartTitle("chart-responsables-title", "Horas por responsable");
+    setChartTitle("chart-acumulado-title", "Acumulado de horas");
+    renderResponsibleChart(metrics.hoursByResponsible, metrics.responsibles);
+    renderLineChart(buildLineSeries(processes, metrics.responsibles));
+  }
   renderTypeBreakdownTable(metrics.breakdownByType);
+  setTypeBreakdownVisibility(!isFredy);
 
   const comparisons = buildWeeklyComparison(options.scheduleEntries || [], processes, ["Jorge", "Johan"]);
-  renderWeeklyComparisonChart("#chart-jorge-weekly", comparisons.find((item) => item.person === "Jorge"));
-  renderWeeklyComparisonChart("#chart-Johan-weekly", comparisons.find((item) => item.person === "Johan"));
+  if (!isFredy) {
+    renderWeeklyComparisonChart("#chart-jorge-weekly", comparisons.find((item) => item.person === "Jorge"));
+    renderWeeklyComparisonChart("#chart-Johan-weekly", comparisons.find((item) => item.person === "Johan"));
+  }
 
   renderWeeklySchedule(options.scheduleEntries || [], { mode: options.scheduleMode || "week" });
 

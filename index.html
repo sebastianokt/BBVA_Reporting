@@ -282,7 +282,7 @@
               <div class="col-lg-4">
                 <div class="card panel-card h-100">
                   <div class="card-body">
-                    <div class="text-uppercase small text-muted">Estado migración</div>
+                    <div id="chart-status-title" class="text-uppercase small text-muted">Estado migración</div>
                     <div id="chart-status" class="chart-box"></div>
                   </div>
                 </div>
@@ -290,7 +290,7 @@
               <div class="col-lg-4">
                 <div class="card panel-card h-100">
                   <div class="card-body">
-                    <div class="text-uppercase small text-muted">Horas por responsable</div>
+                    <div id="chart-responsables-title" class="text-uppercase small text-muted">Horas por responsable</div>
                     <div id="chart-responsables" class="chart-box"></div>
                   </div>
                 </div>
@@ -298,14 +298,14 @@
               <div class="col-lg-4">
                 <div class="card panel-card h-100">
                   <div class="card-body">
-                    <div class="text-uppercase small text-muted">Acumulado de horas</div>
+                    <div id="chart-acumulado-title" class="text-uppercase small text-muted">Acumulado de horas</div>
                     <div id="chart-acumulado" class="chart-box"></div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="row g-3 mt-1">
-              <div class="col-lg-6">
+              <div class="col-lg-6" data-recoveries-chart>
                 <div class="card panel-card h-100">
                   <div class="card-body">
                     <div class="text-uppercase small text-muted">Jorge · proyección vs ejecución</div>
@@ -313,7 +313,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-6">
+              <div class="col-lg-6" data-recoveries-chart>
                 <div class="card panel-card h-100">
                   <div class="card-body">
                     <div class="text-uppercase small text-muted">Johan · proyección vs ejecución</div>
@@ -325,7 +325,7 @@
           </section>
 
           <section id="mod-processes" class="module">
-            <div class="card panel-card mb-3">
+            <div id="type-breakdown-card" class="card panel-card mb-3">
               <div class="card-body">
                 <div class="text-uppercase small text-muted">Desglose por tipo de proceso</div>
                 <div class="table-responsive mt-3">

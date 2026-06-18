@@ -48,7 +48,8 @@ export const updateKpis = (metrics, options = {}) => {
   const JohanEl = document.getElementById("kpi-Johan");
   const fredyEl = document.getElementById("kpi-fredy");
   const activeTeam = options.activeTeam || "ALL";
-  const fredyStats = getTypeStats(metrics, "F");
+  const fredyMetrics = options.fredyMetrics || metrics;
+  const fredyStats = getTypeStats(fredyMetrics, "F");
   const recoveriesStats = getTypeStats(metrics, "R");
 
   setGroupVisibility(activeTeam);
